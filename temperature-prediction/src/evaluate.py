@@ -1,62 +1,74 @@
 import argparse
 
 from data_utils import (
-    MODEL_PATH,
-    configure_runtime,
-    create_sequences,
-    inverse_transform,
-    load_standardizer,
+    MODEL_FILE,
+    load_scaling_numbers,
     load_temperatures,
-    transform,
+    make_sequences,
+    scale_temperatures,
+    setup_runtime,
+    unscale_temperatures,
 )
 
-configure_runtime()
+setup_runtime()
 
 import matplotlib.pyplot as plt
 from tensorflow.keras.models import load_model
 
 
-def parse_args():
-    parser = argparse.ArgumentParser(description="Evaluate the temperature RNN.")
-    parser.add_argument("--no-plot", action="store_true", help="Skip the chart display.")
+def read_command_line_options():
+    parser = argparse.ArgumentParser(description="Evaluate the trained model.")
+    parser.add_argument("--no-plot", action="store_true")
     return parser.parse_args()
 
 
 def main():
-    """Compare model predictions with the real temperatures in the CSV file."""
-    args = parse_args()
+    options = read_command_line_options()
 
-    # Load the scaling settings saved by train.py.
-    mean, std, sequence_length = load_standardizer()
+    print("Loading model and scaling numbers...")
+    model = load_model(MODEL_FILE)
+    mean, standard_deviation, sequence_length = load_scaling_numbers()
 
-    # Prepare the same kind of examples used during training.
+    print("Preparing evaluation data...")
     temperatures = load_temperatures()
-    scaled_temperatures = transform(temperatures, mean, std)
-    X, y_scaled = create_sequences(scaled_temperatures, sequence_length)
+    scaled_temperatures = scale_temperatures(
+        temperatures,
+        mean,
+        standard_deviation,
+    )
+    X, y = make_sequences(scaled_temperatures, sequence_length)
 
-    # Predict scaled values, then convert them back to real temperatures.
-    model = load_model(MODEL_PATH)
-    predictions_scaled = model.predict(X, verbose=0).flatten()
-    y = inverse_transform(y_scaled, mean, std)
-    predictions = inverse_transform(predictions_scaled, mean, std)
+    print("Making predictions...")
+    scaled_predictions = model.predict(X, verbose=0).flatten()
 
-    # MAE means "mean absolute error": the average prediction mistake.
-    mae = abs(y - predictions).mean()
-    print(f"Mean absolute error: {mae:.2f}")
+    actual_temperatures = unscale_temperatures(y, mean, standard_deviation)
+    predicted_temperatures = unscale_temperatures(
+        scaled_predictions,
+        mean,
+        standard_deviation,
+    )
 
-    for actual, predicted in zip(y, predictions):
+    errors = abs(actual_temperatures - predicted_temperatures)
+    mean_absolute_error = errors.mean()
+
+    print(f"\nMean absolute error: {mean_absolute_error:.2f}")
+    print("\nActual vs predicted:")
+
+    for actual, predicted in zip(actual_temperatures, predicted_temperatures):
         print(f"Actual: {actual:.2f} | Predicted: {predicted:.2f}")
 
-    if not args.no_plot:
-        plt.figure(figsize=(10, 5))
-        plt.plot(y, label="Actual")
-        plt.plot(predictions, label="Predicted")
-        plt.xlabel("Sequence")
-        plt.ylabel("Temperature")
-        plt.title("RNN Temperature Prediction")
-        plt.legend()
-        plt.tight_layout()
-        plt.show()
+    if options.no_plot:
+        return
+
+    plt.figure(figsize=(10, 5))
+    plt.plot(actual_temperatures, label="Actual")
+    plt.plot(predicted_temperatures, label="Predicted")
+    plt.xlabel("Sequence")
+    plt.ylabel("Temperature")
+    plt.title("RNN Temperature Prediction")
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
 
 
 if __name__ == "__main__":

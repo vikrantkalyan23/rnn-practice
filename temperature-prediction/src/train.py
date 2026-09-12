@@ -1,108 +1,100 @@
 import argparse
 
 from data_utils import (
-    MODEL_PATH,
-    configure_runtime,
-    create_sequences,
-    fit_standardizer,
+    MODEL_FILE,
+    get_scaling_numbers,
     load_temperatures,
-    save_standardizer,
-    transform,
+    make_sequences,
+    save_scaling_numbers,
+    scale_temperatures,
+    setup_runtime,
 )
 
-configure_runtime()
+setup_runtime()
 
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 
 from model import create_model
 
 
-def parse_args():
-    parser = argparse.ArgumentParser(description="Train the temperature RNN.")
-    parser.add_argument(
-        "--sequence-length",
-        type=int,
-        default=5,
-        help="How many previous days the model uses to predict the next day.",
-    )
-    parser.add_argument(
-        "--epochs",
-        type=int,
-        default=300,
-        help="Maximum number of training passes through the data.",
-    )
-    parser.add_argument(
-        "--batch-size",
-        type=int,
-        default=8,
-        help="How many examples the model sees before updating its weights.",
-    )
-    parser.add_argument(
-        "--units",
-        type=int,
-        default=32,
-        help="Number of memory units in the SimpleRNN layer.",
-    )
+def read_command_line_options():
+    parser = argparse.ArgumentParser(description="Train the temperature RNN model.")
+
+    parser.add_argument("--sequence-length", type=int, default=5)
+    parser.add_argument("--epochs", type=int, default=300)
+    parser.add_argument("--batch-size", type=int, default=8)
+    parser.add_argument("--rnn-units", type=int, default=32)
+
     return parser.parse_args()
 
 
 def main():
-    """Train the model and save everything needed for later prediction."""
-    args = parse_args()
+    options = read_command_line_options()
 
-    # Step 1: Load temperatures from the CSV file.
+    print("Loading temperature data...")
     temperatures = load_temperatures()
 
-    # Step 2: Scale temperatures before training.
-    # Neural networks usually learn faster with values near zero.
-    mean, std = fit_standardizer(temperatures)
-    scaled_temperatures = transform(temperatures, mean, std)
+    print("Scaling temperatures...")
+    mean, standard_deviation = get_scaling_numbers(temperatures)
+    scaled_temperatures = scale_temperatures(
+        temperatures,
+        mean,
+        standard_deviation,
+    )
 
-    # Step 3: Create examples like:
-    # [20, 21, 22, 23, 24] -> 25
-    X, y = create_sequences(scaled_temperatures, args.sequence_length)
+    print("Creating training examples...")
+    X, y = make_sequences(scaled_temperatures, options.sequence_length)
 
     print("X shape:", X.shape)
     print("y shape:", y.shape)
 
-    # Step 4: Build and train the model.
-    model = create_model(sequence_length=args.sequence_length, units=args.units)
-    MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
+    print("Creating the RNN model...")
+    model = create_model(
+        sequence_length=options.sequence_length,
+        rnn_units=options.rnn_units,
+    )
 
-    callbacks = [
-        EarlyStopping(
-            monitor="val_loss",
-            patience=30,
-            restore_best_weights=True,
-            verbose=1,
-        ),
-        ModelCheckpoint(
-            MODEL_PATH,
-            monitor="val_loss",
-            save_best_only=True,
-            verbose=0,
-        ),
-    ]
+    MODEL_FILE.parent.mkdir(parents=True, exist_ok=True)
 
-    # shuffle=False matters for time-series data because order has meaning.
-    history = model.fit(
-        X,
-        y,
-        epochs=args.epochs,
-        batch_size=args.batch_size,
-        validation_split=0.2,
-        shuffle=False,
-        callbacks=callbacks,
+    # EarlyStopping stops training when validation loss stops improving.
+    early_stopping = EarlyStopping(
+        monitor="val_loss",
+        patience=30,
+        restore_best_weights=True,
         verbose=1,
     )
 
-    # Step 5: Save the model and the scaling settings.
-    model.save(MODEL_PATH)
-    save_standardizer(mean, std, args.sequence_length)
+    # ModelCheckpoint saves the best model during training.
+    save_best_model = ModelCheckpoint(
+        MODEL_FILE,
+        monitor="val_loss",
+        save_best_only=True,
+        verbose=0,
+    )
 
-    print(f"\nFinal training loss: {history.history['loss'][-1]:.6f}")
-    print(f"Final validation loss: {history.history['val_loss'][-1]:.6f}")
-    print(f"Model saved to {MODEL_PATH}")
+    print("Training started...")
+    history = model.fit(
+        X,
+        y,
+        epochs=options.epochs,
+        batch_size=options.batch_size,
+        validation_split=0.2,
+        shuffle=False,
+        callbacks=[early_stopping, save_best_model],
+        verbose=1,
+    )
+
+    print("Saving model and scaling numbers...")
+    model.save(MODEL_FILE)
+    save_scaling_numbers(mean, standard_deviation, options.sequence_length)
+
+    final_training_loss = history.history["loss"][-1]
+    best_validation_loss = min(history.history["val_loss"])
+
+    print("\nTraining complete!")
+    print(f"Final training loss: {final_training_loss:.6f}")
+    print(f"Best validation loss: {best_validation_loss:.6f}")
+    print(f"Model saved at: {MODEL_FILE}")
 
 
 if __name__ == "__main__":

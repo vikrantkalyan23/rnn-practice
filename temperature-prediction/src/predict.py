@@ -3,51 +3,64 @@ import argparse
 import numpy as np
 
 from data_utils import (
-    MODEL_PATH,
-    configure_runtime,
-    inverse_transform,
-    load_standardizer,
-    transform,
+    MODEL_FILE,
+    load_scaling_numbers,
+    scale_temperatures,
+    setup_runtime,
+    unscale_temperatures,
 )
 
-configure_runtime()
+setup_runtime()
 
 from tensorflow.keras.models import load_model
 
 
-def parse_args():
+def read_command_line_options():
     parser = argparse.ArgumentParser(description="Predict the next temperature.")
+
     parser.add_argument(
         "temperatures",
         nargs="*",
         type=float,
         default=[45, 46, 47, 48, 49],
-        help="Recent temperatures, for example: 45 46 47 48 49",
+        help="Example: python src/predict.py 45 46 47 48 49",
     )
+
     return parser.parse_args()
 
 
 def main():
-    """Predict the next temperature from a short sequence of recent values."""
-    args = parse_args()
+    options = read_command_line_options()
 
-    # Load the trained model and the scaling settings saved by train.py.
-    mean, std, sequence_length = load_standardizer()
-    model = load_model(MODEL_PATH)
+    print("Loading model and scaling numbers...")
+    model = load_model(MODEL_FILE)
+    mean, standard_deviation, sequence_length = load_scaling_numbers()
 
-    sequence = np.array(args.temperatures, dtype=np.float32)
-    if len(sequence) != sequence_length:
+    input_temperatures = np.array(options.temperatures, dtype=np.float32)
+
+    if len(input_temperatures) != sequence_length:
         raise ValueError(
-            f"Expected {sequence_length} values, got {len(sequence)} values."
+            f"Please enter exactly {sequence_length} temperatures. "
+            f"You entered {len(input_temperatures)}."
         )
 
-    # Scale the input before prediction because the model was trained on
-    # scaled values. Then convert the prediction back to a normal temperature.
-    scaled_sequence = transform(sequence, mean, std).reshape(1, sequence_length, 1)
-    prediction_scaled = model.predict(scaled_sequence, verbose=0).flatten()
-    prediction = inverse_transform(prediction_scaled, mean, std)[0]
+    scaled_input = scale_temperatures(
+        input_temperatures,
+        mean,
+        standard_deviation,
+    )
 
-    print("Input sequence:", sequence.astype(int).tolist())
+    # The model expects shape: 1 example, sequence_length time steps, 1 feature.
+    model_input = scaled_input.reshape(1, sequence_length, 1)
+
+    scaled_prediction = model.predict(model_input, verbose=0).flatten()[0]
+    prediction = unscale_temperatures(
+        scaled_prediction,
+        mean,
+        standard_deviation,
+    )
+
+    print("Input temperatures:", input_temperatures.astype(int).tolist())
     print(f"Predicted next temperature: {prediction:.2f}")
 
 

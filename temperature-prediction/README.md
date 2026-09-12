@@ -20,7 +20,7 @@ temperature-prediction/
     temperature_rnn.keras    # Saved trained model
     temperature_scaler.npz   # Saved scaling values
   src/
-    data_utils.py            # Shared helper functions
+    data_utils.py            # Simple shared helper functions
     prepare_data.py          # Shows how data becomes training examples
     model.py                 # Builds the RNN model
     train.py                 # Trains and saves the model
@@ -169,3 +169,10 @@ Then predict with the same number of values:
 ```bash
 uv run src/predict.py 45 46 47 48 49 50 51
 ```
+
+Change the RNN layer size:
+
+```bash
+uv run src/train.py --rnn-units 16
+```
+

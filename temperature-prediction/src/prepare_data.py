@@ -1,26 +1,33 @@
 import pandas as pd
 
-from data_utils import DATA_PATH, create_sequences, load_temperatures
+from data_utils import DATA_FILE, load_temperatures, make_sequences
+
+
+SEQUENCE_LENGTH = 5
 
 
 def main():
-    """Show how raw temperatures become training examples."""
-    df = pd.read_csv(DATA_PATH)
+    # This file is only for understanding the data preparation step.
+    data_frame = pd.read_csv(DATA_FILE)
     temperatures = load_temperatures()
-    X, y = create_sequences(temperatures, sequence_length=5)
 
-    print("Original Data:")
-    print(df.head())
+    X, y = make_sequences(temperatures, SEQUENCE_LENGTH)
 
-    print("\nTemperature values:")
+    print("First rows from the CSV file:")
+    print(data_frame.head())
+
+    print("\nAll temperature values:")
     print(temperatures.astype(int))
 
-    print("\nX shape:", X.shape)
-    print("y shape:", y.shape)
+    print("\nShape of X:", X.shape)
+    print("Shape of y:", y.shape)
 
-    print("\nFirst 5 sequences:")
-    for sequence, target in zip(X[:5], y[:5]):
-        print("X:", sequence, "y:", target)
+    print("\nFirst 5 training examples:")
+    for i in range(5):
+        input_sequence = X[i].flatten()
+        answer = y[i]
+
+        print("Input:", input_sequence.astype(int).tolist(), "Answer:", int(answer))
 
 
 if __name__ == "__main__":

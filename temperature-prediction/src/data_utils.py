@@ -5,96 +5,115 @@ import numpy as np
 import pandas as pd
 
 
-# These paths are built from this file's location, so scripts work even when
-# you run them from a different folder.
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-DATA_PATH = PROJECT_ROOT / "data" / "temperature.csv"
-MODEL_PATH = PROJECT_ROOT / "models" / "temperature_rnn.keras"
-SCALER_PATH = PROJECT_ROOT / "models" / "temperature_scaler.npz"
-MATPLOTLIB_CACHE_DIR = PROJECT_ROOT / ".cache" / "matplotlib"
+# Main project folders and files.
+# pathlib helps us build file paths that work on macOS, Windows, and Linux.
+PROJECT_FOLDER = Path(__file__).resolve().parents[1]
+DATA_FILE = PROJECT_FOLDER / "data" / "temperature.csv"
+MODEL_FILE = PROJECT_FOLDER / "models" / "temperature_rnn.keras"
+SCALER_FILE = PROJECT_FOLDER / "models" / "temperature_scaler.npz"
+CACHE_FOLDER = PROJECT_FOLDER / ".cache" / "matplotlib"
 
 
-def configure_runtime():
-    """Use a project-local Matplotlib cache to avoid home-folder warnings."""
-    MATPLOTLIB_CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    os.environ.setdefault("MPLCONFIGDIR", str(MATPLOTLIB_CACHE_DIR))
+def setup_runtime():
+    # Matplotlib sometimes wants to write cache files in the user home folder.
+    # This keeps those cache files inside this project instead.
+    CACHE_FOLDER.mkdir(parents=True, exist_ok=True)
+    os.environ.setdefault("MPLCONFIGDIR", str(CACHE_FOLDER))
 
 
-def load_temperatures(data_path=DATA_PATH):
-    """Read the CSV file and return only the temperature column."""
-    df = pd.read_csv(data_path)
-    if "temperature" not in df.columns:
-        raise ValueError("Expected a 'temperature' column in the dataset.")
-    return df["temperature"].to_numpy(dtype=np.float32)
+def load_temperatures():
+    # Read the CSV file.
+    data_frame = pd.read_csv(DATA_FILE)
+
+    # A small safety check makes errors easier to understand.
+    if "temperature" not in data_frame.columns:
+        raise ValueError("The CSV file must contain a 'temperature' column.")
+
+    # The model only needs the temperature numbers.
+    temperatures = data_frame["temperature"].to_numpy(dtype=np.float32)
+    return temperatures
 
 
-def create_sequences(data, sequence_length=5):
-    """Turn a list of temperatures into input/output examples.
+def make_sequences(temperatures, sequence_length):
+    # This function converts one long list of temperatures into many examples.
+    #
+    # Example:
+    # [20, 21, 22, 23, 24] becomes the input
+    # 25 becomes the answer the model should learn to predict
+    X = []
+    y = []
 
-    Example with sequence_length=5:
-    input  = [20, 21, 22, 23, 24]
-    target = 25
-
-    The RNN learns many examples like this, then predicts the next value.
-    """
-    data = np.asarray(data, dtype=np.float32)
     if sequence_length <= 0:
-        raise ValueError("sequence_length must be greater than zero.")
-    if len(data) <= sequence_length:
-        raise ValueError("Not enough data points to create sequences.")
+        raise ValueError("sequence_length must be greater than 0.")
 
-    inputs = []
-    targets = []
+    if len(temperatures) <= sequence_length:
+        raise ValueError("There is not enough data to make training sequences.")
 
-    for start_index in range(len(data) - sequence_length):
-        end_index = start_index + sequence_length
-        inputs.append(data[start_index:end_index])
-        targets.append(data[end_index])
+    for i in range(len(temperatures) - sequence_length):
+        input_sequence = temperatures[i : i + sequence_length]
+        next_temperature = temperatures[i + sequence_length]
 
-    X = np.array(inputs, dtype=np.float32)
-    y = np.array(targets, dtype=np.float32)
+        X.append(input_sequence)
+        y.append(next_temperature)
 
-    # Keras RNNs expect 3 dimensions:
-    # (number_of_examples, sequence_length, number_of_features)
-    return X.reshape((X.shape[0], X.shape[1], 1)), y
+    X = np.array(X, dtype=np.float32)
+    y = np.array(y, dtype=np.float32)
 
+    # RNN input must have this shape:
+    # number of examples, number of time steps, number of features
+    X = X.reshape(X.shape[0], X.shape[1], 1)
 
-def fit_standardizer(values):
-    """Calculate the mean and standard deviation used for scaling."""
-    values = np.asarray(values, dtype=np.float32)
-    mean = np.float32(values.mean())
-    std = np.float32(values.std())
-    if std == 0:
-        raise ValueError("Temperature values have zero variance.")
-    return mean, std
+    return X, y
 
 
-def transform(values, mean, std):
-    """Scale values so the model trains more smoothly."""
-    return (np.asarray(values, dtype=np.float32) - mean) / std
+def get_scaling_numbers(temperatures):
+    # Scaling means changing values so they are easier for the model to learn.
+    mean = np.float32(temperatures.mean())
+    standard_deviation = np.float32(temperatures.std())
+
+    if standard_deviation == 0:
+        raise ValueError("All temperatures are the same, so scaling is not possible.")
+
+    return mean, standard_deviation
 
 
-def inverse_transform(values, mean, std):
-    """Convert scaled model output back to real temperatures."""
-    return (np.asarray(values, dtype=np.float32) * std) + mean
+def scale_temperatures(temperatures, mean, standard_deviation):
+    # Formula: scaled value = (value - mean) / standard deviation
+    return (np.asarray(temperatures, dtype=np.float32) - mean) / standard_deviation
 
 
-def save_standardizer(mean, std, sequence_length, scaler_path=SCALER_PATH):
-    """Save scaling settings next to the trained model."""
-    scaler_path.parent.mkdir(parents=True, exist_ok=True)
-    np.savez(scaler_path, mean=mean, std=std, sequence_length=sequence_length)
+def unscale_temperatures(scaled_temperatures, mean, standard_deviation):
+    # This reverses the scaling formula.
+    return (np.asarray(scaled_temperatures, dtype=np.float32) * standard_deviation) + mean
 
 
-def load_standardizer(scaler_path=SCALER_PATH):
-    """Load the scaling settings that were saved during training."""
-    if not scaler_path.exists():
+def save_scaling_numbers(mean, standard_deviation, sequence_length):
+    # Prediction needs the same scaling numbers that training used.
+    MODEL_FILE.parent.mkdir(parents=True, exist_ok=True)
+    np.savez(
+        SCALER_FILE,
+        mean=mean,
+        standard_deviation=standard_deviation,
+        sequence_length=sequence_length,
+    )
+
+
+def load_scaling_numbers():
+    if not SCALER_FILE.exists():
         raise FileNotFoundError(
-            f"Scaler metadata not found at {scaler_path}. Run src/train.py first."
+            "Scaling file not found. Please run this first: python src/train.py"
         )
 
-    data = np.load(scaler_path)
-    return (
-        np.float32(data["mean"]),
-        np.float32(data["std"]),
-        int(data["sequence_length"]),
-    )
+    saved_data = np.load(SCALER_FILE)
+
+    mean = np.float32(saved_data["mean"])
+
+    if "standard_deviation" in saved_data:
+        standard_deviation = np.float32(saved_data["standard_deviation"])
+    else:
+        # Older versions of this app saved the same value as "std".
+        standard_deviation = np.float32(saved_data["std"])
+
+    sequence_length = int(saved_data["sequence_length"])
+
+    return mean, standard_deviation, sequence_length

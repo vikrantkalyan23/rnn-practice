@@ -1,39 +1,27 @@
-import numpy as np
 import pandas as pd
 
-
-def create_sequences(data, sequence_length=5):
-    X = []
-    y = []
-
-    for i in range(len(data) - sequence_length):
-        X.append(data[i : i + sequence_length])
-        y.append(data[i + sequence_length])
-
-    return np.array(X), np.array(y)
+from data_utils import DATA_PATH, create_sequences, load_temperatures
 
 
-# Load dataset
-df = pd.read_csv("data/temperature.csv")
+def main():
+    """Show how raw temperatures become training examples."""
+    df = pd.read_csv(DATA_PATH)
+    temperatures = load_temperatures()
+    X, y = create_sequences(temperatures, sequence_length=5)
 
-print("Original Data:")
-print(df.head())
+    print("Original Data:")
+    print(df.head())
 
-# Extract temperature values
-temperatures = df["temperature"].values
+    print("\nTemperature values:")
+    print(temperatures.astype(int))
 
-print("\nTemperature values:")
-print(temperatures)
+    print("\nX shape:", X.shape)
+    print("y shape:", y.shape)
 
-# Create sequences
-X, y = create_sequences(temperatures, sequence_length=5)
-# Reshape for RNN
-X = X.reshape((X.shape[0], X.shape[1], 1))
+    print("\nFirst 5 sequences:")
+    for sequence, target in zip(X[:5], y[:5]):
+        print("X:", sequence, "y:", target)
 
-print("\nX shape:", X.shape)
-print("y shape:", y.shape)
 
-print("\nFirst 5 sequences:")
-
-for i in range(5):
-    print("X:", X[i], "y:", y[i])
+if __name__ == "__main__":
+    main()

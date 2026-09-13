@@ -107,6 +107,15 @@ For terminal-only checking without a chart:
 uv run src/evaluate.py --no-plot
 ```
 
+By default, evaluation checks only the held-out test data. The test data is the
+last 20% of the temperature series, so it behaves like future data.
+
+If you want to inspect every sequence, including training rows:
+
+```bash
+uv run src/evaluate.py --all-data
+```
+
 ### 5. Predict the next temperature
 
 Use the default example:
@@ -143,6 +152,18 @@ Neural networks usually train better when numbers are close to zero. The app
 scales temperatures before training, then converts predictions back to normal
 temperature values before printing them.
 
+The app calculates scaling values only from the training data. This avoids data
+leakage from the test data.
+
+### Why can predictions go flat or down?
+
+This dataset is very small and always goes upward. If the model only trains on
+earlier temperatures, the final test temperatures are outside the range it has
+seen. A default RNN can struggle with that kind of extrapolation.
+
+This app uses `activation="relu"` inside `SimpleRNN`, which handles the rising
+trend better for this beginner example.
+
 ### What is MAE?
 
 `MAE` means mean absolute error. It is the average difference between the real
@@ -175,4 +196,3 @@ Change the RNN layer size:
 ```bash
 uv run src/train.py --rnn-units 16
 ```
-

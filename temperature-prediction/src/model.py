@@ -17,13 +17,14 @@ def create_model(sequence_length=5, rnn_units=32):
     model.add(Input(shape=(sequence_length, 1)))
 
     # SimpleRNN is a beginner-friendly recurrent neural network layer.
-    model.add(SimpleRNN(rnn_units))
+    # ReLU helps this tiny trend dataset extrapolate upward better than tanh.
+    model.add(SimpleRNN(rnn_units, activation="relu"))
 
     # Dense(1) gives one final answer: the next temperature.
     model.add(Dense(1))
 
     optimizer = Adam(learning_rate=0.001)
-    model.compile(optimizer=optimizer, loss="mse",metrics=["mae"])
+    model.compile(optimizer=optimizer, loss="mse", metrics=["mae"])
     return model
 
 

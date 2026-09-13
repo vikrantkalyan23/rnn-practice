@@ -46,6 +46,12 @@ def read_command_line_options():
         default=32,
     )
 
+    parser.add_argument(
+        "--no-plot",
+        action="store_true",
+        help="Do not show the training loss chart.",
+    )
+
     return parser.parse_args()
 
 
@@ -91,14 +97,8 @@ def main():
         standard_deviation,
     )
 
-    scaled_test = scale_temperatures(
-        test_temperatures,
-        mean,
-        standard_deviation,
-    )
-
     # ---------------------------------------
-    # 4. Create training sequences
+    # 3. Create training sequences
     # ---------------------------------------
 
     X_train, y_train = make_sequences(
@@ -111,7 +111,7 @@ def main():
     print("y_train:", y_train.shape)
 
     # ---------------------------------------
-    # 5. Create model
+    # 4. Create model
     # ---------------------------------------
 
     model = create_model(
@@ -120,7 +120,7 @@ def main():
     )
 
     # ---------------------------------------
-    # 6. Callbacks
+    # 5. Callbacks
     # ---------------------------------------
 
     early_stopping = EarlyStopping(
@@ -138,7 +138,7 @@ def main():
     )
 
     # ---------------------------------------
-    # 7. Train
+    # 6. Train
     # ---------------------------------------
 
     history = model.fit(
@@ -156,28 +156,8 @@ def main():
         verbose=1,
     )
 
-    plt.figure(figsize=(10, 5))
-
-    plt.plot(
-        history.history["loss"],
-        label="Training Loss",
-    )
-
-    plt.plot(
-        history.history["val_loss"],
-        label="Validation Loss",
-    )
-
-    plt.xlabel("Epoch")
-    plt.ylabel("Loss")
-    plt.title("Training vs Validation Loss")
-
-    plt.legend()
-    plt.tight_layout()
-    plt.show()
-
     # ---------------------------------------
-    # 8. Save scaling numbers
+    # 7. Save scaling numbers
     # ---------------------------------------
 
     save_scaling_numbers(
@@ -186,8 +166,29 @@ def main():
         options.sequence_length,
     )
 
+    if not options.no_plot:
+        plt.figure(figsize=(10, 5))
+
+        plt.plot(
+            history.history["loss"],
+            label="Training Loss",
+        )
+
+        plt.plot(
+            history.history["val_loss"],
+            label="Validation Loss",
+        )
+
+        plt.xlabel("Epoch")
+        plt.ylabel("Loss")
+        plt.title("Training vs Validation Loss")
+
+        plt.legend()
+        plt.tight_layout()
+        plt.show()
+
     # ---------------------------------------
-    # 9. Print training information
+    # 8. Print training information
     # ---------------------------------------
 
     best_epoch = history.history["val_loss"].index(min(history.history["val_loss"])) + 1

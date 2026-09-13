@@ -22,3 +22,7 @@ uv run python src/train.py
 ```
 uv run python src/predict.py
 ```
+
+```
+uv run python src/evaluate.py
+```

@@ -3,7 +3,7 @@ import pandas as pd
 from data_utils import DATA_FILE, load_temperatures, make_sequences
 
 
-SEQUENCE_LENGTH = 5
+SEQUENCE_LENGTH = 30
 
 
 def main():

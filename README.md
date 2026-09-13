@@ -2,7 +2,7 @@
 
 RNN, or Recurrent Neural Network, is a neural network architecture designed for sequential data. It processes inputs step by step and maintains a hidden state that carries information from previous time steps. This allows it to use previous context when processing the current input. RNNs are commonly used for tasks such as text processing, speech, and time-series data. However, vanilla RNNs suffer from vanishing and exploding gradient problems, especially with long sequences, which led to architectures such as LSTM and GRU.
 
-"""
+``` 
 RNN
 │
 ├── Sequential data
@@ -17,7 +17,8 @@ RNN
 │
 ├── Problem → Vanishing/Exploding gradients
 │
-└── Improvements → LSTM / GRU """
+└── Improvements → LSTM / GRU
+```
 
 ## RNN vs LSTM vs GRU
 

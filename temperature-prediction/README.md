@@ -32,6 +32,8 @@ temperature-prediction/
 
 Create a virtual environment:
 
+uv init
+
 ```bash
 uv venv --python 3.12
 ```
@@ -196,3 +198,11 @@ Change the RNN layer size:
 ```bash
 uv run src/train.py --rnn-units 16
 ```
+## To create FastAPI
+uv add fastapi uvicorn
+
+uv run uvicorn api.main:app --reload
+
+http://127.0.0.1:8000/docs
+
+

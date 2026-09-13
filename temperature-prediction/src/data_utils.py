@@ -84,7 +84,9 @@ def scale_temperatures(temperatures, mean, standard_deviation):
 
 def unscale_temperatures(scaled_temperatures, mean, standard_deviation):
     # This reverses the scaling formula.
-    return (np.asarray(scaled_temperatures, dtype=np.float32) * standard_deviation) + mean
+    return (
+        np.asarray(scaled_temperatures, dtype=np.float32) * standard_deviation
+    ) + mean
 
 
 def save_scaling_numbers(mean, standard_deviation, sequence_length):
@@ -117,3 +119,24 @@ def load_scaling_numbers():
     sequence_length = int(saved_data["sequence_length"])
 
     return mean, standard_deviation, sequence_length
+
+
+def split_temperatures(temperatures, test_size=0.2):
+    """
+    Split time-series data chronologically.
+
+    The first part is training data.
+    The last part is test data.
+
+    We do NOT shuffle because time order matters.
+    """
+
+    if not 0 < test_size < 1:
+        raise ValueError("test_size must be between 0 and 1.")
+
+    split_index = int(len(temperatures) * (1 - test_size))
+
+    train = temperatures[:split_index]
+    test = temperatures[split_index:]
+
+    return train, test

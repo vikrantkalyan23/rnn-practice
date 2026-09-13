@@ -4,6 +4,7 @@ setup_runtime()
 
 from tensorflow.keras.layers import Dense, Input, SimpleRNN
 from tensorflow.keras.models import Sequential
+from tensorflow.keras.optimizers import Adam
 
 
 def create_model(sequence_length=5, rnn_units=32):
@@ -21,7 +22,8 @@ def create_model(sequence_length=5, rnn_units=32):
     # Dense(1) gives one final answer: the next temperature.
     model.add(Dense(1))
 
-    model.compile(optimizer="adam", loss="mse")
+    optimizer = Adam(learning_rate=0.001)
+    model.compile(optimizer=optimizer, loss="mse",metrics=["mae"])
     return model
 
 

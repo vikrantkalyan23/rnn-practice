@@ -1,6 +1,10 @@
 import joblib
 import numpy as np
+import os
+import pandas as pd
 import yfinance as yf
+
+os.environ.setdefault("MPLCONFIGDIR", ".cache/matplotlib")
 
 from tensorflow.keras.models import load_model
 
@@ -15,6 +19,7 @@ SEQUENCE_LENGTH = 60
 
 MODEL_PATH = "models/stock_rnn.keras"
 SCALER_PATH = "models/scaler.pkl"
+LOCAL_DATA_PATH = "data/stock_data.csv"
 
 
 # --------------------------------
@@ -68,7 +73,13 @@ def get_latest_stock_data(
     )
 
     if data.empty:
-        raise ValueError(f"No stock data found for {symbol}")
+        print("Online download failed. Using local CSV data instead.")
+        data = pd.read_csv(
+            LOCAL_DATA_PATH,
+            header=[0, 1],
+            index_col=0,
+            parse_dates=True,
+        )
 
     close_prices = data["Close"]
 

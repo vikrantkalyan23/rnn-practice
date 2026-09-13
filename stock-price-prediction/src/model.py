@@ -1,5 +1,10 @@
+import os
+
+os.environ.setdefault("MPLCONFIGDIR", ".cache/matplotlib")
+
+from tensorflow.keras.layers import Dense, Input, SimpleRNN
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Input, SimpleRNN, Dense
+from tensorflow.keras.optimizers import Adam
 
 
 def build_rnn_model(
@@ -7,7 +12,7 @@ def build_rnn_model(
     number_of_features=1,
 ):
     """
-    Build and return a Simple RNN model.
+    Build and return an optimized recurrent model.
 
     Input:
         60 previous stock prices
@@ -25,16 +30,20 @@ def build_rnn_model(
                 )
             ),
             SimpleRNN(
-                50,
-                activation="tanh",
+                64,
+                activation="relu",
             ),
+            Dense(16, activation="relu"),
             Dense(1),
         ]
     )
 
+    optimizer = Adam(learning_rate=0.001)
+
     model.compile(
-        optimizer="adam",
+        optimizer=optimizer,
         loss="mean_squared_error",
+        metrics=["mae"],
     )
 
     return model

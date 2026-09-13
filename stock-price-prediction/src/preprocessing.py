@@ -96,6 +96,32 @@ def create_sequences(data, sequence_length=60):
     return X, y
 
 
+def create_test_sequences_with_context(
+    train_scaled,
+    test_scaled,
+    sequence_length=60,
+):
+    """
+    Create test sequences using the last training prices as context.
+
+    This lets the first test prediction use the 60 prices that came before it,
+    instead of dropping the first 60 test days.
+    """
+
+    context = train_scaled[-sequence_length:]
+    test_data_with_context = np.concatenate(
+        [
+            context,
+            test_scaled,
+        ]
+    )
+
+    return create_sequences(
+        test_data_with_context,
+        sequence_length,
+    )
+
+
 def prepare_data(
     file_path="data/stock_data.csv",
     sequence_length=60,
@@ -134,7 +160,8 @@ def prepare_data(
         sequence_length,
     )
 
-    X_test, y_test = create_sequences(
+    X_test, y_test = create_test_sequences_with_context(
+        train_scaled,
         test_scaled,
         sequence_length,
     )

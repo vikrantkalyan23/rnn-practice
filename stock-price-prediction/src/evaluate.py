@@ -1,7 +1,12 @@
-import matplotlib.pyplot as plt
-import joblib
-import json
 import os
+os.environ.setdefault("MPLCONFIGDIR", ".cache/matplotlib")
+
+import argparse
+import json
+
+import joblib
+import matplotlib.pyplot as plt
+import numpy as np
 
 from tensorflow.keras.models import load_model
 
@@ -60,9 +65,23 @@ def load_training_history():
     return history
 
 
+def read_command_line_options():
+    parser = argparse.ArgumentParser(description="Evaluate the stock price model.")
+    parser.add_argument("--no-plot", action="store_true")
+    return parser.parse_args()
+
+
+def get_history_values(history):
+    if "history" in history:
+        return history["history"]
+
+    return history
+
+
 def plot_actual_vs_predicted(
     actual_prices,
     predicted_prices,
+    show_plot=True,
 ):
 
     plt.figure(figsize=(12, 6))
@@ -94,22 +113,26 @@ def plot_actual_vs_predicted(
         dpi=150,
     )
 
-    plt.show()
+    if show_plot:
+        plt.show()
+    else:
+        plt.close()
 
     print(f"Graph saved to: {output_path}")
 
 
-def plot_training_history(history):
+def plot_training_history(history, show_plot=True):
+    history_values = get_history_values(history)
 
     plt.figure(figsize=(12, 6))
 
     plt.plot(
-        history["loss"],
+        history_values["loss"],
         label="Training Loss",
     )
 
     plt.plot(
-        history["val_loss"],
+        history_values["val_loss"],
         label="Validation Loss",
     )
 
@@ -130,12 +153,16 @@ def plot_training_history(history):
         dpi=150,
     )
 
-    plt.show()
+    if show_plot:
+        plt.show()
+    else:
+        plt.close()
 
     print(f"Graph saved to: {output_path}")
 
 
 def evaluate_model():
+    options = read_command_line_options()
 
     print("=" * 60)
     print("RNN MODEL EVALUATION")
@@ -188,6 +215,16 @@ def evaluate_model():
 
     actual_prices = scaler.inverse_transform(y_test.reshape(-1, 1))
 
+    errors = actual_prices - predicted_prices
+    mae = np.mean(np.abs(errors))
+    rmse = np.sqrt(np.mean(errors**2))
+    mape = np.mean(np.abs(errors / actual_prices)) * 100
+
+    print("\nEvaluation metrics:")
+    print(f"MAE  : ${mae:.2f}")
+    print(f"RMSE : ${rmse:.2f}")
+    print(f"MAPE : {mape:.2f}%")
+
     # --------------------------------
     # 5. Actual vs Predicted
     # --------------------------------
@@ -197,6 +234,7 @@ def evaluate_model():
     plot_actual_vs_predicted(
         actual_prices,
         predicted_prices,
+        show_plot=not options.no_plot,
     )
 
     # --------------------------------
@@ -207,7 +245,10 @@ def evaluate_model():
 
     history = load_training_history()
 
-    plot_training_history(history)
+    plot_training_history(
+        history,
+        show_plot=not options.no_plot,
+    )
 
     print("\n" + "=" * 60)
     print("EVALUATION COMPLETED")

@@ -1,10 +1,14 @@
 from pathlib import Path
 import json
+import argparse
+import os
 
 import joblib
 
 from preprocessing import prepare_data
 from model import build_rnn_model
+
+os.environ.setdefault("MPLCONFIGDIR", ".cache/matplotlib")
 
 
 # ============================================================
@@ -14,7 +18,7 @@ from model import build_rnn_model
 SEQUENCE_LENGTH = 60
 TRAIN_RATIO = 0.8
 
-EPOCHS = 20
+EPOCHS = 100
 BATCH_SIZE = 32
 
 DATA_PATH = "data/stock_data.csv"
@@ -29,7 +33,18 @@ HISTORY_PATH = "models/training_history.json"
 # ============================================================
 
 
-def train_model():
+def read_command_line_options():
+    parser = argparse.ArgumentParser(description="Train the stock price model.")
+    parser.add_argument("--epochs", type=int, default=EPOCHS)
+    parser.add_argument("--batch-size", type=int, default=BATCH_SIZE)
+    parser.add_argument("--sequence-length", type=int, default=SEQUENCE_LENGTH)
+    parser.add_argument("--no-plot", action="store_true")
+    return parser.parse_args()
+
+
+def train_model(options=None):
+    if options is None:
+        options = read_command_line_options()
 
     print("=" * 60)
     print("STOCK PRICE RNN - TRAINING")
@@ -49,7 +64,7 @@ def train_model():
         scaler,
     ) = prepare_data(
         file_path=DATA_PATH,
-        sequence_length=SEQUENCE_LENGTH,
+        sequence_length=options.sequence_length,
         train_ratio=TRAIN_RATIO,
     )
 
@@ -70,7 +85,7 @@ def train_model():
     print("\n[2] Building RNN model...")
 
     model = build_rnn_model(
-        sequence_length=SEQUENCE_LENGTH,
+        sequence_length=options.sequence_length,
         number_of_features=1,
     )
 
@@ -84,12 +99,38 @@ def train_model():
 
     print("\n[3] Training model...")
 
+    from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
+
+    callbacks = [
+        EarlyStopping(
+            monitor="val_loss",
+            patience=15,
+            restore_best_weights=True,
+            verbose=1,
+        ),
+        ReduceLROnPlateau(
+            monitor="val_loss",
+            factor=0.5,
+            patience=5,
+            min_lr=0.00001,
+            verbose=1,
+        ),
+        ModelCheckpoint(
+            MODEL_PATH,
+            monitor="val_loss",
+            save_best_only=True,
+            verbose=1,
+        ),
+    ]
+
     history = model.fit(
         X_train,
         y_train,
-        epochs=EPOCHS,
-        batch_size=BATCH_SIZE,
+        epochs=options.epochs,
+        batch_size=options.batch_size,
         validation_split=0.1,
+        shuffle=False,
+        callbacks=callbacks,
         verbose=1,
     )
 
@@ -101,13 +142,17 @@ def train_model():
 
     print("\n[4] Evaluating model on test data...")
 
-    test_loss = model.evaluate(
+    test_results = model.evaluate(
         X_test,
         y_test,
         verbose=0,
     )
 
+    test_loss = test_results[0]
+    test_mae = test_results[1]
+
     print(f"Test Loss: {test_loss:.6f}")
+    print(f"Test MAE : {test_mae:.6f}")
 
     # --------------------------------------------------------
     # 5. Create Models Directory
@@ -154,7 +199,16 @@ def train_model():
         "w",
     ) as file:
         json.dump(
-            history.history,
+            {
+                "history": history.history,
+                "sequence_length": options.sequence_length,
+                "train_ratio": TRAIN_RATIO,
+                "batch_size": options.batch_size,
+                "epochs_requested": options.epochs,
+                "best_validation_loss": min(history.history["val_loss"]),
+                "test_loss": float(test_loss),
+                "test_mae": float(test_mae),
+            },
             file,
             indent=4,
         )
@@ -167,13 +221,11 @@ def train_model():
 
     print("\n[9] Final training results...")
 
-    final_training_loss = history.history["loss"][-1]
+    best_epoch = history.history["val_loss"].index(min(history.history["val_loss"])) + 1
 
-    final_validation_loss = history.history["val_loss"][-1]
+    print(f"Best Validation Loss  : {min(history.history['val_loss']):.6f}")
 
-    print(f"Final Training Loss   : {final_training_loss:.6f}")
-
-    print(f"Final Validation Loss : {final_validation_loss:.6f}")
+    print(f"Best Epoch            : {best_epoch}")
 
     # --------------------------------------------------------
     # 10. Training Summary

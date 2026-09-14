@@ -25,6 +25,12 @@ For a non-interactive training run:
 uv run python src/train.py --epochs 80 --no-plot
 ```
 
+For quiet repeatable training:
+
+```
+uv run python src/train.py --epochs 100 --no-plot --quiet --seed 11
+```
+
 ```
 uv run python src/predict.py
 ```
@@ -47,7 +53,9 @@ The model uses:
 - scaler fitted only on training data
 - test sequences that include the last training window as context
 - `SimpleRNN(64, activation="relu")`
-- `Dense(16, activation="relu")`
+- `Dense(32, activation="relu")`
+- residual prediction: last known price + learned next-day change
+- `Adam(learning_rate=0.0007, clipnorm=1.0)`
 - `EarlyStopping`
 - `ReduceLROnPlateau`
 - `ModelCheckpoint`
@@ -56,9 +64,9 @@ The model uses:
 Latest local evaluation:
 
 ```text
-MAE  : $2.87
-RMSE : $4.10
-MAPE : 1.34%
+MAE  : $2.41
+RMSE : $3.56
+MAPE : 1.13%
 ```
 
 `src/predict.py` first tries live Yahoo Finance data. If the network is not

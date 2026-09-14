@@ -2,13 +2,14 @@ from pathlib import Path
 import json
 import argparse
 import os
+os.environ.setdefault("MPLCONFIGDIR", ".cache/matplotlib")
 
 import joblib
+import numpy as np
+import tensorflow as tf
 
 from preprocessing import prepare_data
 from model import build_rnn_model
-
-os.environ.setdefault("MPLCONFIGDIR", ".cache/matplotlib")
 
 
 # ============================================================
@@ -20,6 +21,7 @@ TRAIN_RATIO = 0.8
 
 EPOCHS = 100
 BATCH_SIZE = 32
+RANDOM_SEED = 7
 
 DATA_PATH = "data/stock_data.csv"
 
@@ -38,7 +40,9 @@ def read_command_line_options():
     parser.add_argument("--epochs", type=int, default=EPOCHS)
     parser.add_argument("--batch-size", type=int, default=BATCH_SIZE)
     parser.add_argument("--sequence-length", type=int, default=SEQUENCE_LENGTH)
+    parser.add_argument("--seed", type=int, default=RANDOM_SEED)
     parser.add_argument("--no-plot", action="store_true")
+    parser.add_argument("--quiet", action="store_true")
     return parser.parse_args()
 
 
@@ -78,6 +82,10 @@ def train_model(options=None):
 
     print(f"y_test shape : {y_test.shape}")
 
+    np.random.seed(options.seed)
+    tf.random.set_seed(options.seed)
+    tf.keras.backend.clear_session()
+
     # --------------------------------------------------------
     # 2. Build RNN Model
     # --------------------------------------------------------
@@ -104,22 +112,22 @@ def train_model(options=None):
     callbacks = [
         EarlyStopping(
             monitor="val_loss",
-            patience=15,
+            patience=10,
             restore_best_weights=True,
-            verbose=1,
+            verbose=0 if options.quiet else 1,
         ),
         ReduceLROnPlateau(
             monitor="val_loss",
             factor=0.5,
-            patience=5,
+            patience=4,
             min_lr=0.00001,
-            verbose=1,
+            verbose=0 if options.quiet else 1,
         ),
         ModelCheckpoint(
             MODEL_PATH,
             monitor="val_loss",
             save_best_only=True,
-            verbose=1,
+            verbose=0 if options.quiet else 1,
         ),
     ]
 
@@ -131,7 +139,7 @@ def train_model(options=None):
         validation_split=0.1,
         shuffle=False,
         callbacks=callbacks,
-        verbose=1,
+        verbose=0 if options.quiet else 1,
     )
 
     print("\nTraining completed.")
@@ -205,6 +213,7 @@ def train_model(options=None):
                 "train_ratio": TRAIN_RATIO,
                 "batch_size": options.batch_size,
                 "epochs_requested": options.epochs,
+                "random_seed": options.seed,
                 "best_validation_loss": min(history.history["val_loss"]),
                 "test_loss": float(test_loss),
                 "test_mae": float(test_mae),

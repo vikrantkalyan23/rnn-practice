@@ -2,8 +2,8 @@ import os
 
 os.environ.setdefault("MPLCONFIGDIR", ".cache/matplotlib")
 
-from tensorflow.keras.layers import Dense, Input, SimpleRNN
-from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Add, Dense, Input, SimpleRNN
+from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
 
 
@@ -21,24 +21,43 @@ def build_rnn_model(
         1 predicted stock price
     """
 
-    model = Sequential(
+    inputs = Input(
+        shape=(
+            sequence_length,
+            number_of_features,
+        )
+    )
+
+    rnn_output = SimpleRNN(
+        24,
+        activation="relu",
+    )(inputs)
+
+    hidden_output = Dense(
+        12,
+        activation="relu",
+    )(rnn_output)
+
+    predicted_change = Dense(1)(hidden_output)
+
+    last_known_price = inputs[:, -1, :]
+
+    predicted_price = Add()(
         [
-            Input(
-                shape=(
-                    sequence_length,
-                    number_of_features,
-                )
-            ),
-            SimpleRNN(
-                64,
-                activation="relu",
-            ),
-            Dense(16, activation="relu"),
-            Dense(1),
+            last_known_price,
+            predicted_change,
         ]
     )
 
-    optimizer = Adam(learning_rate=0.001)
+    model = Model(
+        inputs=inputs,
+        outputs=predicted_price,
+    )
+
+    optimizer = Adam(
+        learning_rate=0.0003,
+        clipnorm=1.0,
+    )
 
     model.compile(
         optimizer=optimizer,

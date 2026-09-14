@@ -124,23 +124,53 @@ def plot_actual_vs_predicted(
 def plot_training_history(history, show_plot=True):
     history_values = get_history_values(history)
 
+    training_loss = history_values["loss"]
+    validation_loss = history_values["val_loss"]
+
+    best_epoch_index = int(np.argmin(validation_loss))
+    best_epoch = best_epoch_index + 1
+    best_training_loss = training_loss[best_epoch_index]
+    best_validation_loss = validation_loss[best_epoch_index]
+    loss_gap = best_validation_loss - best_training_loss
+    epochs = range(1, len(training_loss) + 1)
+
     plt.figure(figsize=(12, 6))
 
     plt.plot(
-        history_values["loss"],
+        epochs,
+        training_loss,
         label="Training Loss",
     )
 
     plt.plot(
-        history_values["val_loss"],
+        epochs,
+        validation_loss,
         label="Validation Loss",
     )
 
-    plt.title("Training vs Validation Loss")
+    plt.scatter(
+        best_epoch,
+        best_validation_loss,
+        color="red",
+        zorder=5,
+        label=f"Best Validation Epoch: {best_epoch}",
+    )
+
+    plt.title(
+        "Training vs Validation Loss "
+        f"(Best Val: {best_validation_loss:.6f}, Gap: {loss_gap:.6f})"
+    )
 
     plt.xlabel("Epoch")
 
     plt.ylabel("Loss")
+
+    plt.ylim(bottom=0)
+
+    plt.grid(
+        True,
+        alpha=0.3,
+    )
 
     plt.legend()
 

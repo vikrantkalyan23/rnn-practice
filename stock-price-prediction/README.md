@@ -28,7 +28,7 @@ uv run python src/train.py --epochs 80 --no-plot
 For quiet repeatable training:
 
 ```
-uv run python src/train.py --epochs 100 --no-plot --quiet --seed 11
+uv run python src/train.py --epochs 100 --no-plot --quiet --seed 7
 ```
 
 ```
@@ -52,10 +52,10 @@ The model uses:
 - chronological train/test split
 - scaler fitted only on training data
 - test sequences that include the last training window as context
-- `SimpleRNN(64, activation="relu")`
-- `Dense(32, activation="relu")`
+- `SimpleRNN(24, activation="relu")`
+- `Dense(12, activation="relu")`
 - residual prediction: last known price + learned next-day change
-- `Adam(learning_rate=0.0007, clipnorm=1.0)`
+- `Adam(learning_rate=0.0003, clipnorm=1.0)`
 - `EarlyStopping`
 - `ReduceLROnPlateau`
 - `ModelCheckpoint`
@@ -64,9 +64,9 @@ The model uses:
 Latest local evaluation:
 
 ```text
-MAE  : $2.41
-RMSE : $3.56
-MAPE : 1.13%
+MAE  : $2.38
+RMSE : $3.53
+MAPE : 1.11%
 ```
 
 `src/predict.py` first tries live Yahoo Finance data. If the network is not

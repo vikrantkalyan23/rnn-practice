@@ -80,3 +80,7 @@ Relative gap                  : 23.16%
 
 `src/predict.py` first tries live Yahoo Finance data. If the network is not
 available, it falls back to `data/stock_data.csv`.
+
+```
+uv run uvicorn app.main:app --reload
+```

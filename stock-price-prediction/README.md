@@ -69,5 +69,14 @@ RMSE : $3.53
 MAPE : 1.11%
 ```
 
+Latest train/validation gap:
+
+```text
+Training loss at best epoch   : 0.000132
+Validation loss at best epoch : 0.000172
+Gap                           : 0.000040
+Relative gap                  : 23.16%
+```
+
 `src/predict.py` first tries live Yahoo Finance data. If the network is not
 available, it falls back to `data/stock_data.csv`.

@@ -21,7 +21,7 @@ TRAIN_RATIO = 0.8
 
 EPOCHS = 100
 BATCH_SIZE = 32
-RANDOM_SEED = 7
+RANDOM_SEED = 11
 
 DATA_PATH = "data/stock_data.csv"
 

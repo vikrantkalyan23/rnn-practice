@@ -131,7 +131,7 @@ Useful options:
 uv run python scripts/train.py \
   --epochs 150 \
   --batch-size 8 \
-  --sequence-length 5 \
+  --sequence-length 7 \
   --learning-rate 0.0015 \
   --seed 11
 ```
@@ -306,20 +306,20 @@ stopped.
 The fixed multi-split validation result is:
 
 ```text
-Top-1      : 8.58% +/- 3.24%
-Top-3      : 19.93% +/- 3.17%
-Top-5      : 26.10% +/- 2.94%
-Perplexity : 88.60 +/- 8.36
+Top-1      : 9.32% +/- 1.16%
+Top-3      : 19.67% +/- 1.40%
+Top-5      : 27.12% +/- 2.41%
+Perplexity : 85.98 +/- 6.27
 ```
 
 After model selection, the neural-only final evaluation used the permanent 47
 line test partition:
 
 ```text
-Loss       : 4.6620
-Perplexity : 105.85
-Top-1      : 7.78%
-Top-3      : 17.37%
+Loss       : 4.6025
+Perplexity : 99.73
+Top-1      : 6.59%
+Top-3      : 17.96%
 Top-5      : 24.55%
 ```
 
@@ -348,7 +348,7 @@ Change one setting at a time and compare validation metrics.
 
 | Setting | Try | Main tradeoff |
 | --- | --- | --- |
-| Sequence length | 3, 5, 8 | Longer context needs more data |
+| Sequence length | 3, 4, 5, 6, 7 | Longer context needs more data |
 | LSTM units | 32, 48, 64 | More units can overfit |
 | Embedding size | 16, 32, 64 | Larger vectors learn more parameters |
 | Dropout | 0.1 to 0.4 | Too much can cause underfitting |
@@ -363,19 +363,21 @@ Run the reproducible hyperparameter comparison with:
 uv run python scripts/tune.py
 ```
 
-The tuner compares six compact configurations across validation seeds `7`,
-`11`, and `19`. It selects the lowest mean validation loss and saves:
+The tuner reads one systematic experiment matrix from
+`experiments/tuning_config.json`, evaluates every configuration across
+validation seeds `7`, `11`, and `19`, and selects the lowest mean validation
+loss. The fixed test partition is never used. Results are saved incrementally:
 
 ```text
 outputs/hyperparameter_tuning.json
+outputs/hyperparameter_tuning.csv
 outputs/hyperparameter_tuning.png
 ```
 
-The stage-two average winner used dropout `0.50` and learning rate `0.0015`.
-Across three splits it achieved mean validation loss `3.1398`, mean validation
-accuracy `35.86%`, and a mean accuracy gap of `5.59` percentage points. However,
-it regressed the production seed-11 result, so the saved model conservatively
-keeps learning rate `0.001`.
+The systematic winner uses sequence length `7`, learning rate `0.0015`, batch
+size `16`, embedding/LSTM size `48`, and dropout `0.30`. Across three splits it
+achieved mean validation loss `4.4515`, Top-1 `9.32%`, Top-3 `19.67%`, and Top-5
+`27.12%`.
 
 ## Current Evaluation
 

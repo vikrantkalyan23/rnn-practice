@@ -22,7 +22,7 @@ LR_REFINEMENT_PATH = OUTPUT_DIR / "learning_rate_refinement.json"
 MULTI_SPLIT_METRICS_PATH = OUTPUT_DIR / "multi_split_metrics.json"
 
 # Model and training defaults sized for the expanded educational corpus.
-SEQUENCE_LENGTH = 5
+SEQUENCE_LENGTH = 7
 MAX_VOCAB_SIZE = 160
 EMBEDDING_DIM = 48
 LSTM_UNITS = 48

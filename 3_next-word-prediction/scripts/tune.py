@@ -1,3 +1,5 @@
+import csv
+import hashlib
 import json
 import os
 import random
@@ -14,16 +16,9 @@ import numpy as np  # noqa: E402
 import tensorflow as tf  # noqa: E402
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau  # noqa: E402
 
-from app.config import (  # noqa: E402
-    DATA_PATH,
-    MAX_VOCAB_SIZE,
-    OUTPUT_DIR,
-    TEST_RATIO,
-    TEST_SPLIT_SEED,
-    VALIDATION_RATIO,
-    VALIDATION_SEEDS,
-)
+from app.config import DATA_PATH, OUTPUT_DIR  # noqa: E402
 from app.data import (  # noqa: E402
+    count_possible_targets,
     create_sequences,
     create_tokenizer,
     get_vocabulary_size,
@@ -32,91 +27,49 @@ from app.data import (  # noqa: E402
 from app.network import build_model  # noqa: E402
 
 
-# A small, deliberate search is easier to understand than a large blind grid.
-CANDIDATES = [
-    {
-        "name": "tuned_baseline",
-        "embedding_dim": 16,
-        "lstm_units": 12,
-        "dropout": 0.50,
-        "learning_rate": 0.001,
-        "l2_strength": 0.001,
-        "sequence_length": 5,
-        "batch_size": 8,
-    },
-    {
-        "name": "context_3",
-        "embedding_dim": 16,
-        "lstm_units": 12,
-        "dropout": 0.50,
-        "learning_rate": 0.001,
-        "l2_strength": 0.001,
-        "sequence_length": 3,
-        "batch_size": 8,
-    },
-    {
-        "name": "context_4",
-        "embedding_dim": 16,
-        "lstm_units": 12,
-        "dropout": 0.50,
-        "learning_rate": 0.001,
-        "l2_strength": 0.001,
-        "sequence_length": 4,
-        "batch_size": 8,
-    },
-    {
-        "name": "context_6",
-        "embedding_dim": 16,
-        "lstm_units": 12,
-        "dropout": 0.50,
-        "learning_rate": 0.001,
-        "l2_strength": 0.001,
-        "sequence_length": 6,
-        "batch_size": 8,
-    },
-    {
-        "name": "batch_4",
-        "embedding_dim": 16,
-        "lstm_units": 12,
-        "dropout": 0.50,
-        "learning_rate": 0.001,
-        "l2_strength": 0.001,
-        "sequence_length": 5,
-        "batch_size": 4,
-    },
-    {
-        "name": "batch_16",
-        "embedding_dim": 16,
-        "lstm_units": 12,
-        "dropout": 0.50,
-        "learning_rate": 0.001,
-        "l2_strength": 0.001,
-        "sequence_length": 5,
-        "batch_size": 16,
-    },
-    {
-        "name": "dropout_55",
-        "embedding_dim": 16,
-        "lstm_units": 12,
-        "dropout": 0.55,
-        "learning_rate": 0.001,
-        "l2_strength": 0.001,
-        "sequence_length": 5,
-        "batch_size": 8,
-    },
-    {
-        "name": "learning_0015",
-        "embedding_dim": 16,
-        "lstm_units": 12,
-        "dropout": 0.50,
-        "learning_rate": 0.0015,
-        "l2_strength": 0.001,
-        "sequence_length": 5,
-        "batch_size": 8,
-    },
-]
+CONFIG_PATH = PROJECT_DIR / "experiments" / "tuning_config.json"
+JSON_REPORT_PATH = OUTPUT_DIR / "hyperparameter_tuning.json"
+CSV_REPORT_PATH = OUTPUT_DIR / "hyperparameter_tuning.csv"
+PLOT_PATH = OUTPUT_DIR / "hyperparameter_tuning.png"
 
-EPOCHS = 150
+CONFIG_FIELDS = (
+    "learning_rate",
+    "batch_size",
+    "embedding_dim",
+    "lstm_units",
+    "sequence_length",
+    "dropout",
+    "l2_strength",
+    "max_vocab_size",
+)
+METRICS = (
+    "best_epoch",
+    "train_loss",
+    "validation_loss",
+    "loss_gap",
+    "train_accuracy",
+    "top_1_accuracy",
+    "top_3_accuracy",
+    "top_5_accuracy",
+    "validation_target_coverage",
+)
+
+
+def load_experiment_config():
+    config = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+    baseline = config["baseline"]
+    candidates = []
+    for experiment in config["experiments"]:
+        candidate = {**baseline, **experiment}
+        missing = [field for field in CONFIG_FIELDS if field not in candidate]
+        if missing:
+            raise ValueError(f"{candidate.get('name', 'experiment')} missing {missing}")
+        candidates.append(candidate)
+
+    names = [candidate["name"] for candidate in candidates]
+    if len(names) != len(set(names)):
+        raise ValueError("Experiment names must be unique.")
+    return config, candidates
 
 
 def set_random_seed(seed):
@@ -125,21 +78,25 @@ def set_random_seed(seed):
     tf.random.set_seed(seed)
 
 
-def evaluate_candidate(candidate, text):
-    fold_results = []
+def top_k_accuracy(probabilities, targets, k):
+    k = min(k, probabilities.shape[1])
+    top_ids = np.argpartition(probabilities, -k, axis=1)[:, -k:]
+    return float(np.mean(np.any(top_ids == targets[:, None], axis=1)))
 
-    for seed in VALIDATION_SEEDS:
+
+def evaluate_candidate(candidate, text, protocol):
+    folds = []
+    for seed in protocol["validation_seeds"]:
         tf.keras.backend.clear_session()
         set_random_seed(seed)
-
-        train_text, validation_text, _ = split_text_train_validation_test(
+        train_text, validation_text, test_text = split_text_train_validation_test(
             text,
-            validation_ratio=VALIDATION_RATIO,
-            test_ratio=TEST_RATIO,
-            test_seed=TEST_SPLIT_SEED,
+            validation_ratio=protocol["validation_ratio"],
+            test_ratio=protocol["test_ratio"],
+            test_seed=protocol["test_split_seed"],
             validation_seed=seed,
         )
-        tokenizer = create_tokenizer(train_text, MAX_VOCAB_SIZE)
+        tokenizer = create_tokenizer(train_text, candidate["max_vocab_size"])
         X_train, y_train = create_sequences(
             train_text, tokenizer, candidate["sequence_length"]
         )
@@ -159,122 +116,173 @@ def evaluate_candidate(candidate, text):
             X_train,
             y_train,
             validation_data=(X_validation, y_validation),
-            epochs=EPOCHS,
+            epochs=protocol["max_epochs"],
             batch_size=candidate["batch_size"],
             shuffle=False,
             verbose=0,
             callbacks=[
                 EarlyStopping(
                     monitor="val_loss",
-                    patience=8,
-                    min_delta=0.001,
+                    patience=protocol["early_stopping_patience"],
+                    min_delta=protocol["early_stopping_min_delta"],
                     restore_best_weights=True,
                 ),
                 ReduceLROnPlateau(
                     monitor="val_loss",
-                    factor=0.5,
-                    patience=4,
-                    min_lr=0.00001,
+                    factor=protocol["lr_reduction_factor"],
+                    patience=protocol["lr_reduction_patience"],
+                    min_lr=protocol["minimum_learning_rate"],
                 ),
             ],
         )
         best_index = int(np.argmin(history.history["val_loss"]))
         train_loss, train_accuracy = model.evaluate(X_train, y_train, verbose=0)
         validation_loss, validation_accuracy = model.evaluate(
-            X_validation,
-            y_validation,
-            verbose=0,
+            X_validation, y_validation, verbose=0
         )
-        fold_results.append(
+        probabilities = model.predict(X_validation, verbose=0)
+        folds.append(
             {
-                "seed": seed,
+                "validation_seed": seed,
                 "best_epoch": best_index + 1,
+                "epochs_ran": len(history.history["loss"]),
+                "train_examples": len(y_train),
+                "validation_examples": len(y_validation),
+                "fixed_test_lines": len(test_text.splitlines()),
                 "train_loss": float(train_loss),
                 "validation_loss": float(validation_loss),
                 "loss_gap": float(validation_loss - train_loss),
                 "train_accuracy": float(train_accuracy),
-                "validation_accuracy": float(validation_accuracy),
-                "accuracy_gap": float(train_accuracy - validation_accuracy),
+                "top_1_accuracy": float(validation_accuracy),
+                "top_3_accuracy": top_k_accuracy(probabilities, y_validation, 3),
+                "top_5_accuracy": top_k_accuracy(probabilities, y_validation, 5),
+                "validation_target_coverage": len(y_validation)
+                / count_possible_targets(validation_text),
             }
         )
 
-    result = dict(candidate)
-    result["folds"] = fold_results
-    for metric in (
+    result = {field: candidate[field] for field in ("name", *CONFIG_FIELDS)}
+    result["folds"] = folds
+    for metric in METRICS:
+        values = [fold[metric] for fold in folds]
+        result[f"mean_{metric}"] = float(np.mean(values))
+        result[f"std_{metric}"] = float(np.std(values))
+    return result
+
+
+def write_csv(results):
+    fieldnames = [
+        "run",
+        "name",
+        *CONFIG_FIELDS,
+        "validation_seed",
         "best_epoch",
+        "epochs_ran",
+        "train_examples",
+        "validation_examples",
+        "fixed_test_lines",
         "train_loss",
         "validation_loss",
         "loss_gap",
         "train_accuracy",
-        "validation_accuracy",
-        "accuracy_gap",
-    ):
-        values = [fold[metric] for fold in fold_results]
-        result[f"mean_{metric}"] = float(np.mean(values))
-        result[f"std_{metric}"] = float(np.std(values))
+        "top_1_accuracy",
+        "top_3_accuracy",
+        "top_5_accuracy",
+        "validation_target_coverage",
+    ]
+    with CSV_REPORT_PATH.open("w", newline="", encoding="utf-8") as output:
+        writer = csv.DictWriter(output, fieldnames=fieldnames)
+        writer.writeheader()
+        run = 0
+        for result in results:
+            for fold in result["folds"]:
+                run += 1
+                writer.writerow(
+                    {
+                        "run": run,
+                        "name": result["name"],
+                        **{field: result[field] for field in CONFIG_FIELDS},
+                        **fold,
+                    }
+                )
 
-    return result
+
+def write_report(config, results, status):
+    ranked = sorted(results, key=lambda result: result["mean_validation_loss"])
+    report = {
+        "status": status,
+        "selection_metric": "lowest mean validation loss across fixed validation splits",
+        "protocol": config["protocol"],
+        "test_partition_used_for_tuning": False,
+        "completed_experiments": len(results),
+        "best_candidate": ranked[0]["name"] if ranked else None,
+        "results": ranked,
+    }
+    JSON_REPORT_PATH.write_text(json.dumps(report, indent=2), encoding="utf-8")
+    write_csv(results)
 
 
 def plot_results(results):
-    names = [result["name"] for result in results]
-    losses = [result["mean_validation_loss"] for result in results]
-    loss_errors = [result["std_validation_loss"] for result in results]
-    accuracies = [result["mean_validation_accuracy"] for result in results]
+    ranked = sorted(results, key=lambda result: result["mean_validation_loss"])
+    names = [result["name"] for result in ranked]
+    losses = [result["mean_validation_loss"] for result in ranked]
+    top_1 = [result["mean_top_1_accuracy"] for result in ranked]
+    top_3 = [result["mean_top_3_accuracy"] for result in ranked]
+    top_5 = [result["mean_top_5_accuracy"] for result in ranked]
 
-    figure, axes = plt.subplots(1, 2, figsize=(14, 5))
-    axes[0].bar(names, losses, yerr=loss_errors, color="#2878B5", capsize=4)
-    axes[0].set_title("Mean Validation Loss Across Three Splits")
-    axes[0].set_ylabel("Cross-entropy loss")
-    axes[0].tick_params(axis="x", rotation=25)
-    axes[0].grid(axis="y", alpha=0.25)
+    figure, axes = plt.subplots(1, 2, figsize=(16, 6))
+    axes[0].barh(names, losses, color="#2878B5")
+    axes[0].invert_yaxis()
+    axes[0].set_title("Mean Validation Loss")
+    axes[0].set_xlabel("Cross-entropy loss")
+    axes[0].grid(axis="x", alpha=0.25)
 
-    axes[1].bar(names, accuracies, color="#59A14F")
-    axes[1].set_title("Mean Validation Accuracy Across Three Splits")
-    axes[1].set_ylabel("Accuracy")
-    axes[1].set_ylim(0, max(accuracies) * 1.25)
-    axes[1].tick_params(axis="x", rotation=25)
-    axes[1].grid(axis="y", alpha=0.25)
+    positions = np.arange(len(names))
+    width = 0.25
+    axes[1].barh(positions - width, top_1, width, label="Top-1")
+    axes[1].barh(positions, top_3, width, label="Top-3")
+    axes[1].barh(positions + width, top_5, width, label="Top-5")
+    axes[1].set_yticks(positions, names)
+    axes[1].invert_yaxis()
+    axes[1].set_title("Mean Top-K Accuracy")
+    axes[1].set_xlabel("Accuracy")
+    axes[1].legend()
+    axes[1].grid(axis="x", alpha=0.25)
 
     figure.tight_layout()
-    figure.savefig(OUTPUT_DIR / "hyperparameter_tuning.png", dpi=160)
+    figure.savefig(PLOT_PATH, dpi=160)
     plt.close(figure)
 
 
 def main():
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    config, candidates = load_experiment_config()
     text = DATA_PATH.read_text(encoding="utf-8")
+    config["protocol"]["corpus_test_protocol_fingerprint"] = hashlib.sha256(
+        f"{config['protocol']['test_split_seed']}:{text}".encode()
+    ).hexdigest()
     results = []
 
-    for index, candidate in enumerate(CANDIDATES, start=1):
-        print(f"[{index}/{len(CANDIDATES)}] Testing {candidate['name']}...")
-        result = evaluate_candidate(candidate, text)
+    for index, candidate in enumerate(candidates, start=1):
+        print(f"[{index}/{len(candidates)}] {candidate['name']}")
+        result = evaluate_candidate(candidate, text, config["protocol"])
         results.append(result)
+        write_report(config, results, status="running")
         print(
-            f"  val_loss={result['mean_validation_loss']:.4f}, "
-            f"val_accuracy={result['mean_validation_accuracy']:.2%}, "
-            f"accuracy_gap={result['mean_accuracy_gap']:.2%}"
+            f"  loss={result['mean_validation_loss']:.4f}, "
+            f"top1={result['mean_top_1_accuracy']:.2%}, "
+            f"top3={result['mean_top_3_accuracy']:.2%}, "
+            f"top5={result['mean_top_5_accuracy']:.2%}"
         )
 
-    results.sort(key=lambda result: result["mean_validation_loss"])
-    report = {
-        "selection_metric": "lowest mean validation loss across three splits",
-        "tuning_stage": "context length and training settings",
-        "validation_seeds": list(VALIDATION_SEEDS),
-        "test_split_seed": TEST_SPLIT_SEED,
-        "test_partition_used_for_tuning": False,
-        "best_candidate": results[0]["name"],
-        "results": results,
-    }
-    (OUTPUT_DIR / "hyperparameter_tuning.json").write_text(
-        json.dumps(report, indent=2),
-        encoding="utf-8",
-    )
+    write_report(config, results, status="complete")
     plot_results(results)
-
-    print("\nBest candidate:")
-    print(json.dumps({key: value for key, value in results[0].items() if key != "folds"}, indent=2))
-    print(f"\nReport saved to: {OUTPUT_DIR / 'hyperparameter_tuning.json'}")
+    best = min(results, key=lambda result: result["mean_validation_loss"])
+    print(f"\nBest candidate: {best['name']}")
+    print(f"Mean validation loss: {best['mean_validation_loss']:.4f}")
+    print(f"Mean Top-1: {best['mean_top_1_accuracy']:.2%}")
+    print(f"JSON report: {JSON_REPORT_PATH}")
+    print(f"CSV ledger : {CSV_REPORT_PATH}")
 
 
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
 {
-  "sequence_length": 5,
+  "sequence_length": 7,
   "vocab_size": 160,
   "embedding_dim": 48,
   "lstm_units": 48,

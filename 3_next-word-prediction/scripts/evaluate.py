@@ -160,7 +160,7 @@ def main():
         VALIDATION_RATIO,
         saved_history["random_seed"],
     )
-    _, y_train = create_sequences(
+    X_train, y_train = create_sequences(
         train_text,
         tokenizer,
         sequence_length=model_config["sequence_length"],
@@ -173,6 +173,11 @@ def main():
     total_validation_targets = count_possible_targets(validation_text)
     validation_coverage = len(y_validation) / total_validation_targets
 
+    train_loss, train_accuracy = model.evaluate(
+        X_train,
+        y_train,
+        verbose=0,
+    )
     validation_loss, validation_accuracy = model.evaluate(
         X_validation,
         y_validation,
@@ -194,8 +199,12 @@ def main():
     perplexity = float(np.exp(min(validation_loss, 50)))
     metrics = {
         "validation_loss": float(validation_loss),
+        "train_loss": float(train_loss),
+        "loss_gap": float(validation_loss - train_loss),
         "validation_perplexity": perplexity,
         "validation_accuracy": float(validation_accuracy),
+        "train_accuracy": float(train_accuracy),
+        "accuracy_gap": float(train_accuracy - validation_accuracy),
         "top_1_accuracy": top_k_scores[1],
         "top_3_accuracy": top_k_scores[3],
         "top_5_accuracy": top_k_scores[5],
@@ -221,8 +230,10 @@ def main():
     print("Validation metrics")
     print("-" * 35)
     print(f"Loss       : {validation_loss:.4f}")
+    print(f"Loss gap   : {validation_loss - train_loss:.4f}")
     print(f"Perplexity : {perplexity:.2f}")
     print(f"Top-1      : {top_k_scores[1]:.2%}")
+    print(f"Accuracy gap: {train_accuracy - validation_accuracy:.2%}")
     print(f"Top-3      : {top_k_scores[3]:.2%}")
     print(f"Top-5      : {top_k_scores[5]:.2%}")
     print(f"Baseline   : {baseline_accuracy:.2%} (most frequent word)")

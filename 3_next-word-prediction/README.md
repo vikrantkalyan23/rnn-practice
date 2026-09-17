@@ -63,7 +63,7 @@ The model contains:
 
 1. `Embedding`: learns a numeric vector for each word.
 2. `LSTM(12)`: reads the ordered word vectors and keeps sequence information.
-3. `Dropout(0.40)`: reduces dependence on individual neurons.
+3. `Dropout(0.50)`: reduces dependence on individual neurons.
 4. `Dense + softmax`: returns one probability for every vocabulary word.
 
 The model is intentionally compact because a large network memorizes this small
@@ -261,21 +261,39 @@ Change one setting at a time and compare validation metrics.
 Do not optimize using validation accuracy alone. Check loss, perplexity, top-k
 accuracy, confidence, and generated examples together.
 
+Run the reproducible hyperparameter comparison with:
+
+```bash
+uv run python scripts/tune.py
+```
+
+The tuner compares six compact configurations across validation seeds `7`,
+`11`, and `19`. It selects the lowest mean validation loss and saves:
+
+```text
+outputs/hyperparameter_tuning.json
+outputs/hyperparameter_tuning.png
+```
+
+The current winner uses dropout `0.50`. Across the three splits it achieved
+mean validation loss `3.1719`, mean validation accuracy `32.81%`, and a mean
+accuracy gap of `5.55` percentage points.
+
 ## Current Evaluation
 
 The tuned model currently reports:
 
 ```text
-Best epoch                  : 126
-Training accuracy           : 32.42%
-Validation accuracy         : 32.14%
-Accuracy gap                : 0.28 percentage points
-Training loss               : 2.7327
-Validation loss             : 3.2555
-Loss gap                    : 0.5228
-Validation perplexity       : 25.93
-Top-3 accuracy              : 48.21%
-Top-5 accuracy              : 53.57%
+Best epoch                  : 147
+Training accuracy           : 46.09%
+Validation accuracy         : 33.93%
+Accuracy gap                : 12.17 percentage points
+Training loss               : 2.4472
+Validation loss             : 3.1791
+Loss gap                    : 0.7319
+Validation perplexity       : 24.03
+Top-3 accuracy              : 50.00%
+Top-5 accuracy              : 55.36%
 Most-frequent-word baseline : 12.50%
 Random baseline             : 1.25%
 Validation target coverage  : 59.57%
@@ -285,6 +303,11 @@ The vocabulary limit is an intentional tradeoff. It substantially reduces
 overfitting and improves accuracy, but the model cannot predict rare words.
 `validation_target_coverage` keeps that limitation visible. Increase vocabulary
 only after adding enough examples for the additional words.
+
+These production metrics use seed `11`. Across tuning seeds `7`, `11`, and `19`,
+the selected configuration has a smaller mean accuracy gap of `5.55` percentage
+points. The difference between one split and the cross-split average demonstrates
+why results from this small corpus should not be judged from one split alone.
 
 ## Current Limitations
 

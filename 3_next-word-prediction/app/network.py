@@ -9,8 +9,9 @@ def build_model(
     sequence_length: int,
     embedding_dim: int = 16,
     lstm_units: int = 12,
-    dropout: float = 0.40,
+    dropout: float = 0.50,
     learning_rate: float = 0.001,
+    l2_strength: float = 0.001,
 ):
     """Build a compact LSTM suitable for a small teaching corpus."""
     model = Sequential(
@@ -23,13 +24,13 @@ def build_model(
             ),
             LSTM(
                 lstm_units,
-                kernel_regularizer=l2(0.001),
+                kernel_regularizer=l2(l2_strength),
             ),
             Dropout(dropout),
             Dense(
                 vocab_size,
                 activation="softmax",
-                kernel_regularizer=l2(0.001),
+                kernel_regularizer=l2(l2_strength),
             ),
         ]
     )

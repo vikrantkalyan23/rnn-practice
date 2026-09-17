@@ -25,6 +25,7 @@ from app.config import (  # noqa: E402
     EPOCHS,
     HISTORY_PATH,
     LEARNING_RATE,
+    L2_STRENGTH,
     LSTM_UNITS,
     MAX_VOCAB_SIZE,
     MODEL_CONFIG_PATH,
@@ -82,6 +83,7 @@ def main():
         lstm_units=LSTM_UNITS,
         dropout=DROPOUT,
         learning_rate=LEARNING_RATE,
+        l2_strength=L2_STRENGTH,
     )
     model.summary()
 
@@ -143,6 +145,7 @@ def main():
         "lstm_units": LSTM_UNITS,
         "dropout": DROPOUT,
         "max_vocab_size": MAX_VOCAB_SIZE,
+        "l2_strength": L2_STRENGTH,
     }
     MODEL_CONFIG_PATH.write_text(json.dumps(model_config, indent=2), encoding="utf-8")
 

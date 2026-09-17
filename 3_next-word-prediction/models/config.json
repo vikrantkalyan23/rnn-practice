@@ -3,6 +3,7 @@
   "vocab_size": 80,
   "embedding_dim": 16,
   "lstm_units": 12,
-  "dropout": 0.4,
-  "max_vocab_size": 80
+  "dropout": 0.5,
+  "max_vocab_size": 80,
+  "l2_strength": 0.001
 }

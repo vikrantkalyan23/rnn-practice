@@ -62,8 +62,8 @@ Short contexts are padded with zeros so every input has the same length:
 The model contains:
 
 1. `Embedding`: learns a numeric vector for each word.
-2. `LSTM(24)`: reads the ordered word vectors and keeps sequence information.
-3. `Dropout(0.35)`: reduces dependence on individual neurons.
+2. `LSTM(12)`: reads the ordered word vectors and keeps sequence information.
+3. `Dropout(0.40)`: reduces dependence on individual neurons.
 4. `Dense + softmax`: returns one probability for every vocabulary word.
 
 The model is intentionally compact because a large network memorizes this small
@@ -266,12 +266,15 @@ accuracy, confidence, and generated examples together.
 The tuned model currently reports:
 
 ```text
-Best epoch                  : 83
-Training accuracy           : 44.14%
-Validation accuracy         : 30.36%
-Validation loss             : 3.3082
-Validation perplexity       : 27.34
-Top-3 accuracy              : 50.00%
+Best epoch                  : 126
+Training accuracy           : 32.42%
+Validation accuracy         : 32.14%
+Accuracy gap                : 0.28 percentage points
+Training loss               : 2.7327
+Validation loss             : 3.2555
+Loss gap                    : 0.5228
+Validation perplexity       : 25.93
+Top-3 accuracy              : 48.21%
 Top-5 accuracy              : 53.57%
 Most-frequent-word baseline : 12.50%
 Random baseline             : 1.25%

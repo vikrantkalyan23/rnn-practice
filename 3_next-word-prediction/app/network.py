@@ -7,9 +7,9 @@ from tensorflow.keras.regularizers import l2
 def build_model(
     vocab_size: int,
     sequence_length: int,
-    embedding_dim: int = 24,
-    lstm_units: int = 24,
-    dropout: float = 0.35,
+    embedding_dim: int = 16,
+    lstm_units: int = 12,
+    dropout: float = 0.40,
     learning_rate: float = 0.001,
 ):
     """Build a compact LSTM suitable for a small teaching corpus."""

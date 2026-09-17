@@ -19,9 +19,9 @@ OUTPUT_DIR = BASE_DIR / "outputs"
 # Model and training defaults are intentionally small for this tiny corpus.
 SEQUENCE_LENGTH = 5
 MAX_VOCAB_SIZE = 80
-EMBEDDING_DIM = 24
-LSTM_UNITS = 24
-DROPOUT = 0.35
+EMBEDDING_DIM = 16
+LSTM_UNITS = 12
+DROPOUT = 0.40
 LEARNING_RATE = 0.001
 VALIDATION_RATIO = 0.2
 BATCH_SIZE = 8

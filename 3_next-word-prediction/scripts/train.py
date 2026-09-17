@@ -1,86 +1,155 @@
+import argparse
+import json
+import os
+import random
+import sys
 from pathlib import Path
 
-from app.preprocessing.cleaner import clean_text
-from app.preprocessing.tokenizer import (
-    create_tokenizer,
-    save_tokenizer,
+PROJECT_DIR = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(PROJECT_DIR))
+os.environ.setdefault("MPLCONFIGDIR", str(PROJECT_DIR / ".cache" / "matplotlib"))
+
+import numpy as np  # noqa: E402
+import tensorflow as tf  # noqa: E402
+from tensorflow.keras.callbacks import (  # noqa: E402
+    EarlyStopping,
+    ModelCheckpoint,
+    ReduceLROnPlateau,
 )
-from app.preprocessing.sequences import (
-    create_training_sequences,
+
+from app.config import (  # noqa: E402
+    BATCH_SIZE,
+    DATA_PATH,
+    DROPOUT,
+    EMBEDDING_DIM,
+    EPOCHS,
+    HISTORY_PATH,
+    LEARNING_RATE,
+    LSTM_UNITS,
+    MAX_VOCAB_SIZE,
+    MODEL_CONFIG_PATH,
+    MODEL_DIR,
+    MODEL_PATH,
+    RANDOM_SEED,
+    SEQUENCE_LENGTH,
+    TOKENIZER_PATH,
+    VALIDATION_RATIO,
 )
-from app.model.architecture import build_model
+from app.data import get_vocabulary_size, prepare_datasets, save_tokenizer  # noqa: E402
+from app.network import build_model  # noqa: E402
 
 
-DATA_PATH = Path("data/raw/corpus.txt")
-MODEL_PATH = Path("models/next_word_model.keras")
-TOKENIZER_PATH = Path("models/tokenizer.json")
+def read_options():
+    parser = argparse.ArgumentParser(description="Train the next-word LSTM.")
+    parser.add_argument("--epochs", type=int, default=EPOCHS)
+    parser.add_argument("--batch-size", type=int, default=BATCH_SIZE)
+    parser.add_argument("--sequence-length", type=int, default=SEQUENCE_LENGTH)
+    parser.add_argument("--seed", type=int, default=RANDOM_SEED)
+    parser.add_argument("--quiet", action="store_true")
+    return parser.parse_args()
 
 
 def main():
+    options = read_options()
+    random.seed(options.seed)
+    np.random.seed(options.seed)
+    tf.random.set_seed(options.seed)
+    tf.keras.backend.clear_session()
 
-    print("Loading dataset...")
-
+    print("Loading and preparing the corpus...")
     text = DATA_PATH.read_text(encoding="utf-8")
-
-    print("Cleaning text...")
-
-    text = clean_text(text)
-
-    print("Creating tokenizer...")
-
-    tokenizer = create_tokenizer(text)
-
-    print(f"Vocabulary size: {len(tokenizer.word_index) + 1}")
-
-    print("Creating sequences...")
-
-    sequence_length = 5
-
-    X, y = create_training_sequences(
+    X_train, y_train, X_validation, y_validation, tokenizer = prepare_datasets(
         text,
-        tokenizer,
-        sequence_length=sequence_length,
+        sequence_length=options.sequence_length,
+        validation_ratio=VALIDATION_RATIO,
+        random_seed=options.seed,
+        max_vocab_size=MAX_VOCAB_SIZE,
     )
+    vocab_size = get_vocabulary_size(tokenizer)
 
-    vocab_size = len(tokenizer.word_index) + 1
+    print(f"Training examples  : {len(X_train)}")
+    print(f"Validation examples: {len(X_validation)}")
+    print(f"Vocabulary size    : {vocab_size}")
+    print(f"Input shape        : {X_train.shape}")
 
-    print(f"X shape: {X.shape}")
-    print(f"y shape: {y.shape}")
-    print(f"Sequence length: {sequence_length}")
-
-    print("Building model...")
+    MODEL_DIR.mkdir(parents=True, exist_ok=True)
+    save_tokenizer(tokenizer, TOKENIZER_PATH)
 
     model = build_model(
         vocab_size=vocab_size,
-        sequence_length=sequence_length,
-        embedding_dim=128,
-        lstm_units=128,
+        sequence_length=options.sequence_length,
+        embedding_dim=EMBEDDING_DIM,
+        lstm_units=LSTM_UNITS,
+        dropout=DROPOUT,
+        learning_rate=LEARNING_RATE,
     )
-
     model.summary()
 
+    callbacks = [
+        EarlyStopping(
+            monitor="val_loss",
+            patience=15,
+            min_delta=0.001,
+            restore_best_weights=True,
+            verbose=0 if options.quiet else 1,
+        ),
+        ReduceLROnPlateau(
+            monitor="val_loss",
+            factor=0.5,
+            patience=6,
+            min_lr=0.00001,
+            verbose=0 if options.quiet else 1,
+        ),
+        ModelCheckpoint(
+            MODEL_PATH,
+            monitor="val_loss",
+            save_best_only=True,
+            verbose=0 if options.quiet else 1,
+        ),
+    ]
+
     print("Training model...")
-
-    model.fit(
-        X,
-        y,
-        epochs=50,
-        batch_size=32,
-        validation_split=0.2,
+    history = model.fit(
+        X_train,
+        y_train,
+        validation_data=(X_validation, y_validation),
+        epochs=options.epochs,
+        batch_size=options.batch_size,
+        shuffle=False,
+        callbacks=callbacks,
+        verbose=0 if options.quiet else 1,
     )
 
-    print("Saving model...")
+    best_epoch_index = int(np.argmin(history.history["val_loss"]))
+    best_epoch = best_epoch_index + 1
 
-    model.save(MODEL_PATH)
+    history_data = {
+        "history": {
+            key: [float(value) for value in values]
+            for key, values in history.history.items()
+        },
+        "best_epoch": best_epoch,
+        "sequence_length": options.sequence_length,
+        "batch_size": options.batch_size,
+        "random_seed": options.seed,
+        "validation_ratio": VALIDATION_RATIO,
+    }
+    HISTORY_PATH.write_text(json.dumps(history_data, indent=2), encoding="utf-8")
 
-    print("Saving tokenizer...")
+    model_config = {
+        "sequence_length": options.sequence_length,
+        "vocab_size": vocab_size,
+        "embedding_dim": EMBEDDING_DIM,
+        "lstm_units": LSTM_UNITS,
+        "dropout": DROPOUT,
+        "max_vocab_size": MAX_VOCAB_SIZE,
+    }
+    MODEL_CONFIG_PATH.write_text(json.dumps(model_config, indent=2), encoding="utf-8")
 
-    save_tokenizer(
-        tokenizer,
-        TOKENIZER_PATH,
-    )
-
-    print("Training complete!")
+    print(f"Best epoch          : {best_epoch}")
+    print(f"Best validation loss: {history.history['val_loss'][best_epoch_index]:.4f}")
+    print(f"Model saved to      : {MODEL_PATH}")
+    print("Run `uv run python scripts/evaluate.py` to create evaluation graphs.")
 
 
 if __name__ == "__main__":

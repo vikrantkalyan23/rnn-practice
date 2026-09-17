@@ -1,25 +1,41 @@
-from app.model.predictor import NextWordPredictor
+import argparse
+import json
+import sys
+from pathlib import Path
 
 
-predictor = NextWordPredictor(
-    model_path="models/next_word_model.keras",
-    tokenizer_path="models/tokenizer.json",
-    sequence_length=5,
-)
+PROJECT_DIR = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(PROJECT_DIR))
+
+from app.config import MODEL_CONFIG_PATH, MODEL_PATH, TOKENIZER_PATH  # noqa: E402
+from app.predictor import NextWordPredictor  # noqa: E402
 
 
-text = "machine learning"
+def read_options():
+    parser = argparse.ArgumentParser(description="Generate words with the trained model.")
+    parser.add_argument("text", nargs="?", default="machine learning")
+    parser.add_argument("--words", type=int, default=5)
+    parser.add_argument("--top-k", type=int, default=5)
+    return parser.parse_args()
 
-next_word = predictor.predict_next_word(text)
 
-print(f"Input: {text}")
+def main():
+    options = read_options()
+    config = json.loads(MODEL_CONFIG_PATH.read_text(encoding="utf-8"))
+    predictor = NextWordPredictor(
+        model_path=MODEL_PATH,
+        tokenizer_path=TOKENIZER_PATH,
+        sequence_length=config["sequence_length"],
+    )
 
-print(f"Next word: {next_word}")
+    print(f"Input: {options.text}")
+    print("\nTop next-word candidates:")
+    for word, probability in predictor.predict_top_words(options.text, options.top_k):
+        print(f"  {word:<15} {probability:.2%}")
+
+    generated = predictor.generate_text(options.text, next_words=options.words)
+    print(f"\nGenerated: {generated}")
 
 
-generated = predictor.generate_text(
-    text,
-    next_words=5,
-)
-
-print(f"Generated: {generated}")
+if __name__ == "__main__":
+    main()

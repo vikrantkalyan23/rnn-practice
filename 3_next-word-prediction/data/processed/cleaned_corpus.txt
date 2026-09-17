@@ -1,0 +1,80 @@
+machine learning is a branch of artificial intelligence
+machine learning allows computers to learn from data
+deep learning is a part of machine learning
+deep learning uses neural networks
+neural networks are inspired by the human brain
+artificial intelligence is changing the world
+python is a popular programming language
+python is widely used in machine learning
+machine learning is widely used in data science
+data science uses statistics and machine learning
+machine learning finds useful patterns in data
+machine learning models learn from examples
+machine learning can solve prediction problems
+machine learning requires clean training data
+machine learning engineers build intelligent systems
+machine learning algorithms improve through experience
+machine learning supports many modern applications
+machine learning combines data and algorithms
+machine learning projects need careful evaluation
+machine learning models should use unseen test data
+deep learning uses layers of neural networks
+deep learning models can learn complex patterns
+deep learning requires large amounts of data
+deep learning is useful for images and language
+deep learning models often need powerful computers
+neural networks contain connected processing units
+neural networks learn weights during training
+neural networks can model complex relationships
+neural networks use activation functions
+neural networks improve by reducing prediction error
+artificial intelligence helps computers solve problems
+artificial intelligence includes machine learning
+artificial intelligence systems can support people
+artificial intelligence applications require responsible design
+artificial intelligence can process language and images
+python provides simple tools for data science
+python supports machine learning libraries
+python programs are easy to read
+python developers use functions and classes
+python is useful for automation and analysis
+data science turns raw data into useful information
+data science combines programming and statistics
+data science projects begin with clear questions
+data science requires careful data preparation
+data science helps people make informed decisions
+training data teaches a model to recognize patterns
+training data should represent the real problem
+training data must be cleaned before modeling
+training data quality affects model quality
+validation data helps select model settings
+validation data measures generalization during training
+validation loss can reveal model overfitting
+test data measures final model performance
+test data should remain unseen during training
+model training updates weights to reduce loss
+model training uses examples and correct targets
+model evaluation compares predictions with targets
+model evaluation should include a simple baseline
+language models predict words from previous context
+language models learn patterns from text
+language models use tokens to represent words
+language models can generate new text
+language models improve with more training examples
+word prediction uses the words that came before
+word prediction returns likely next words
+word prediction quality depends on the corpus
+an embedding converts words into numeric vectors
+an embedding learns relationships between words
+an lstm remembers useful sequence information
+an lstm uses gates to control memory
+the optimizer updates model weights during training
+the learning rate controls the update size
+early stopping keeps the best validation model
+dropout can reduce overfitting in neural networks
+good experiments compare training and validation results
+good predictions require relevant representative data
+clean data helps machine learning models improve
+more examples help language models learn context
+careful evaluation helps detect overfitting
+simple baselines make model results easier to understand

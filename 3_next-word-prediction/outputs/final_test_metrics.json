@@ -1,0 +1,17 @@
+{
+  "split": "untouched_test",
+  "random_seed": 11,
+  "validation_ratio": 0.2,
+  "test_ratio": 0.15,
+  "train_lines": 52,
+  "validation_lines": 16,
+  "test_lines": 12,
+  "test_examples": 41,
+  "test_target_coverage": 0.6119402985074627,
+  "test_loss": 3.4453232288360596,
+  "test_perplexity": 31.3534161371968,
+  "test_accuracy": 0.26829269528388977,
+  "top_1_accuracy": 0.2682926829268293,
+  "top_3_accuracy": 0.3902439024390244,
+  "top_5_accuracy": 0.43902439024390244
+}

@@ -18,6 +18,7 @@ from app.config import (  # noqa: E402
     MODEL_CONFIG_PATH,
     MODEL_PATH,
     OUTPUT_DIR,
+    TEST_RATIO,
     TOKENIZER_PATH,
     VALIDATION_RATIO,
 )
@@ -26,6 +27,7 @@ from app.data import (  # noqa: E402
     create_sequences,
     load_tokenizer,
     split_text_by_line,
+    split_text_train_validation_test,
 )
 
 
@@ -155,11 +157,19 @@ def main():
     model = load_model(MODEL_PATH)
 
     text = DATA_PATH.read_text(encoding="utf-8")
-    train_text, validation_text = split_text_by_line(
-        text,
-        VALIDATION_RATIO,
-        saved_history["random_seed"],
-    )
+    if saved_history.get("held_out_test"):
+        train_text, validation_text, _ = split_text_train_validation_test(
+            text,
+            VALIDATION_RATIO,
+            saved_history.get("test_ratio", TEST_RATIO),
+            saved_history["random_seed"],
+        )
+    else:
+        train_text, validation_text = split_text_by_line(
+            text,
+            VALIDATION_RATIO,
+            saved_history["random_seed"],
+        )
     X_train, y_train = create_sequences(
         train_text,
         tokenizer,

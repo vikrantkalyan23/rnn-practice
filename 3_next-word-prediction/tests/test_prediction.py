@@ -4,6 +4,7 @@ from app.data import (
     create_sequences,
     create_tokenizer,
     get_vocabulary_size,
+    split_text_train_validation_test,
     split_text_by_line,
 )
 
@@ -31,6 +32,35 @@ def test_line_split_is_repeatable_and_keeps_lines_separate():
     train_text, validation_text = first_split
     assert len(train_text.splitlines()) == 3
     assert len(validation_text.splitlines()) == 1
+
+
+def test_train_validation_test_split_is_repeatable_and_disjoint():
+    text = "\n".join(f"sentence {index}" for index in range(10))
+    first_split = split_text_train_validation_test(
+        text,
+        validation_ratio=0.2,
+        test_ratio=0.2,
+        random_seed=11,
+    )
+    second_split = split_text_train_validation_test(
+        text,
+        validation_ratio=0.2,
+        test_ratio=0.2,
+        random_seed=11,
+    )
+
+    assert first_split == second_split
+    train_text, validation_text, test_text = first_split
+    train_lines = set(train_text.splitlines())
+    validation_lines = set(validation_text.splitlines())
+    test_lines = set(test_text.splitlines())
+
+    assert len(train_lines) == 6
+    assert len(validation_lines) == 2
+    assert len(test_lines) == 2
+    assert train_lines.isdisjoint(validation_lines)
+    assert train_lines.isdisjoint(test_lines)
+    assert validation_lines.isdisjoint(test_lines)
 
 
 def test_rare_words_are_not_used_as_prediction_targets():

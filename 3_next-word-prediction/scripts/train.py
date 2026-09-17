@@ -34,9 +34,17 @@ from app.config import (  # noqa: E402
     RANDOM_SEED,
     SEQUENCE_LENGTH,
     TOKENIZER_PATH,
+    TEST_RATIO,
     VALIDATION_RATIO,
 )
-from app.data import get_vocabulary_size, prepare_datasets, save_tokenizer  # noqa: E402
+from app.data import (  # noqa: E402
+    create_sequences,
+    create_tokenizer,
+    get_vocabulary_size,
+    prepare_datasets,
+    save_tokenizer,
+    split_text_train_validation_test,
+)
 from app.network import build_model  # noqa: E402
 
 
@@ -45,7 +53,9 @@ def read_options():
     parser.add_argument("--epochs", type=int, default=EPOCHS)
     parser.add_argument("--batch-size", type=int, default=BATCH_SIZE)
     parser.add_argument("--sequence-length", type=int, default=SEQUENCE_LENGTH)
+    parser.add_argument("--learning-rate", type=float, default=LEARNING_RATE)
     parser.add_argument("--seed", type=int, default=RANDOM_SEED)
+    parser.add_argument("--holdout-test", action="store_true")
     parser.add_argument("--quiet", action="store_true")
     return parser.parse_args()
 
@@ -59,17 +69,40 @@ def main():
 
     print("Loading and preparing the corpus...")
     text = DATA_PATH.read_text(encoding="utf-8")
-    X_train, y_train, X_validation, y_validation, tokenizer = prepare_datasets(
-        text,
-        sequence_length=options.sequence_length,
-        validation_ratio=VALIDATION_RATIO,
-        random_seed=options.seed,
-        max_vocab_size=MAX_VOCAB_SIZE,
-    )
+    test_lines = 0
+    if options.holdout_test:
+        train_text, validation_text, test_text = split_text_train_validation_test(
+            text,
+            validation_ratio=VALIDATION_RATIO,
+            test_ratio=TEST_RATIO,
+            random_seed=options.seed,
+        )
+        tokenizer = create_tokenizer(train_text, MAX_VOCAB_SIZE)
+        X_train, y_train = create_sequences(
+            train_text,
+            tokenizer,
+            options.sequence_length,
+        )
+        X_validation, y_validation = create_sequences(
+            validation_text,
+            tokenizer,
+            options.sequence_length,
+        )
+        test_lines = len(test_text.splitlines())
+    else:
+        X_train, y_train, X_validation, y_validation, tokenizer = prepare_datasets(
+            text,
+            sequence_length=options.sequence_length,
+            validation_ratio=VALIDATION_RATIO,
+            random_seed=options.seed,
+            max_vocab_size=MAX_VOCAB_SIZE,
+        )
     vocab_size = get_vocabulary_size(tokenizer)
 
     print(f"Training examples  : {len(X_train)}")
     print(f"Validation examples: {len(X_validation)}")
+    if options.holdout_test:
+        print(f"Held-out test lines: {test_lines}")
     print(f"Vocabulary size    : {vocab_size}")
     print(f"Input shape        : {X_train.shape}")
 
@@ -82,7 +115,7 @@ def main():
         embedding_dim=EMBEDDING_DIM,
         lstm_units=LSTM_UNITS,
         dropout=DROPOUT,
-        learning_rate=LEARNING_RATE,
+        learning_rate=options.learning_rate,
         l2_strength=L2_STRENGTH,
     )
     model.summary()
@@ -135,6 +168,8 @@ def main():
         "batch_size": options.batch_size,
         "random_seed": options.seed,
         "validation_ratio": VALIDATION_RATIO,
+        "test_ratio": TEST_RATIO if options.holdout_test else 0.0,
+        "held_out_test": options.holdout_test,
     }
     HISTORY_PATH.write_text(json.dumps(history_data, indent=2), encoding="utf-8")
 
@@ -146,7 +181,7 @@ def main():
         "dropout": DROPOUT,
         "max_vocab_size": MAX_VOCAB_SIZE,
         "l2_strength": L2_STRENGTH,
-        "learning_rate": LEARNING_RATE,
+        "learning_rate": options.learning_rate,
         "batch_size": options.batch_size,
     }
     MODEL_CONFIG_PATH.write_text(json.dumps(model_config, indent=2), encoding="utf-8")

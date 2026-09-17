@@ -34,8 +34,11 @@ trained on millions of sentences.
 ├── scripts/
 │   ├── prepare_data.py
 │   ├── train.py
+│   ├── refine_learning_rate.py
+│   ├── final_evaluate.py
 │   ├── evaluate.py
 │   └── predict.py
+├── frontend/           # Next.js browser client
 └── tests/              # Small unit tests for the data pipeline
 ```
 
@@ -118,7 +121,14 @@ uv run python scripts/train.py \
   --epochs 150 \
   --batch-size 8 \
   --sequence-length 5 \
+  --learning-rate 0.0015 \
   --seed 11
+```
+
+For the final model, keep the untouched test lines out of training:
+
+```bash
+uv run python scripts/train.py --learning-rate 0.0015 --holdout-test
 ```
 
 Training uses:
@@ -213,6 +223,16 @@ uncertain between. Compare perplexity only on the same vocabulary and dataset.
 uv run python scripts/predict.py "machine learning" --words 5 --top-k 5
 ```
 
+Use temperature sampling for less deterministic generation:
+
+```bash
+uv run python scripts/predict.py "machine learning" \
+  --words 5 \
+  --top-k 5 \
+  --temperature 1.4 \
+  --sample
+```
+
 The script prints the five most likely next words with probabilities and then
 generates five words recursively.
 
@@ -237,7 +257,59 @@ Example request:
 ```bash
 curl -X POST http://127.0.0.1:8000/predict \
   -H "Content-Type: application/json" \
-  -d '{"text":"machine learning","num_words":5}'
+  -d '{"text":"machine learning","num_words":5,"top_k":5,"temperature":1.0,"sample":false}'
+```
+
+The response includes generated text and top-k candidate probabilities.
+
+## 6. Run the Next.js Client
+
+In one terminal, run the FastAPI backend:
+
+```bash
+uv run uvicorn app.main:app --reload
+```
+
+In another terminal:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open:
+
+```text
+http://localhost:3000
+```
+
+The client reads `NEXT_PUBLIC_API_BASE_URL` when set. Otherwise it calls
+`http://127.0.0.1:8000`.
+
+## Final Checkpoint
+
+The final learning-rate-only refinement tested `0.00125`, `0.0015`, and
+`0.00175` across seeds `7`, `11`, and `19`. It did not produce a meaningful
+accuracy improvement over the existing three-split result, so LSTM tuning is
+stopped.
+
+The held-out final test run used `12` untouched lines:
+
+```text
+Loss       : 3.4453
+Perplexity : 31.35
+Top-1      : 26.83%
+Top-3      : 39.02%
+Top-5      : 43.90%
+```
+
+Detailed reports:
+
+```text
+outputs/learning_rate_refinement.json
+outputs/final_test_metrics.json
+outputs/error_analysis.json
 ```
 
 ## Run Tests

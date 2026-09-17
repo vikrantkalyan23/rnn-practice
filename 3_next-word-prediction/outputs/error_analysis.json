@@ -1,0 +1,586 @@
+{
+  "total_errors": 30,
+  "error_rate": 0.7317073170731707,
+  "lowest_confidence_actual_word_errors": [
+    {
+      "context": "machine learning models",
+      "actual": "should",
+      "predicted": "learn",
+      "actual_probability": 0.001957667525857687,
+      "predicted_probability": 0.08239482343196869,
+      "top_predictions": [
+        {
+          "word": "learn",
+          "probability": 0.08239482343196869
+        },
+        {
+          "word": "improve",
+          "probability": 0.07050979137420654
+        },
+        {
+          "word": "can",
+          "probability": 0.05706266313791275
+        },
+        {
+          "word": "prediction",
+          "probability": 0.05313080921769142
+        },
+        {
+          "word": "from",
+          "probability": 0.04390654340386391
+        }
+      ]
+    },
+    {
+      "context": "language models learn patterns from",
+      "actual": "text",
+      "predicted": "learn",
+      "actual_probability": 0.0022073921281844378,
+      "predicted_probability": 0.0703502967953682,
+      "top_predictions": [
+        {
+          "word": "learn",
+          "probability": 0.0703502967953682
+        },
+        {
+          "word": "prediction",
+          "probability": 0.055536601692438126
+        },
+        {
+          "word": "data",
+          "probability": 0.05095485970377922
+        },
+        {
+          "word": "to",
+          "probability": 0.04707908630371094
+        },
+        {
+          "word": "from",
+          "probability": 0.04585975781083107
+        }
+      ]
+    },
+    {
+      "context": "deep learning uses <OOV> <OOV>",
+      "actual": "neural",
+      "predicted": "model",
+      "actual_probability": 0.0029906905256211758,
+      "predicted_probability": 0.09171079099178314,
+      "top_predictions": [
+        {
+          "word": "model",
+          "probability": 0.09171079099178314
+        },
+        {
+          "word": "the",
+          "probability": 0.09020581841468811
+        },
+        {
+          "word": "prediction",
+          "probability": 0.07989201694726944
+        },
+        {
+          "word": "training",
+          "probability": 0.07422991842031479
+        },
+        {
+          "word": "data",
+          "probability": 0.05380967631936073
+        }
+      ]
+    },
+    {
+      "context": "machine learning <OOV> useful",
+      "actual": "patterns",
+      "predicted": "data",
+      "actual_probability": 0.005617920774966478,
+      "predicted_probability": 0.09108933806419373,
+      "top_predictions": [
+        {
+          "word": "data",
+          "probability": 0.09108933806419373
+        },
+        {
+          "word": "prediction",
+          "probability": 0.0550229474902153
+        },
+        {
+          "word": "models",
+          "probability": 0.04450686648488045
+        },
+        {
+          "word": "learn",
+          "probability": 0.043962083756923676
+        },
+        {
+          "word": "and",
+          "probability": 0.041984666138887405
+        }
+      ]
+    },
+    {
+      "context": "model",
+      "actual": "training",
+      "predicted": "intelligence",
+      "actual_probability": 0.005632980726659298,
+      "predicted_probability": 0.10487277805805206,
+      "top_predictions": [
+        {
+          "word": "intelligence",
+          "probability": 0.10487277805805206
+        },
+        {
+          "word": "evaluation",
+          "probability": 0.06196712329983711
+        },
+        {
+          "word": "predictions",
+          "probability": 0.03227289766073227
+        },
+        {
+          "word": "text",
+          "probability": 0.03088226728141308
+        },
+        {
+          "word": "before",
+          "probability": 0.030465099960565567
+        }
+      ]
+    },
+    {
+      "context": "model training uses",
+      "actual": "examples",
+      "predicted": "intelligence",
+      "actual_probability": 0.009286514483392239,
+      "predicted_probability": 0.0698029175400734,
+      "top_predictions": [
+        {
+          "word": "intelligence",
+          "probability": 0.0698029175400734
+        },
+        {
+          "word": "evaluation",
+          "probability": 0.04069030284881592
+        },
+        {
+          "word": "predictions",
+          "probability": 0.03420240432024002
+        },
+        {
+          "word": "should",
+          "probability": 0.025083910673856735
+        },
+        {
+          "word": "modeling",
+          "probability": 0.025018498301506042
+        }
+      ]
+    },
+    {
+      "context": "model training uses examples",
+      "actual": "and",
+      "predicted": "intelligence",
+      "actual_probability": 0.01021158043295145,
+      "predicted_probability": 0.04404674097895622,
+      "top_predictions": [
+        {
+          "word": "intelligence",
+          "probability": 0.04404674097895622
+        },
+        {
+          "word": "predictions",
+          "probability": 0.02850078046321869
+        },
+        {
+          "word": "should",
+          "probability": 0.02740355394780636
+        },
+        {
+          "word": "science",
+          "probability": 0.02587779238820076
+        },
+        {
+          "word": "evaluation",
+          "probability": 0.025170231238007545
+        }
+      ]
+    },
+    {
+      "context": "machine learning <OOV> useful patterns",
+      "actual": "in",
+      "predicted": "prediction",
+      "actual_probability": 0.010234330780804157,
+      "predicted_probability": 0.06830007582902908,
+      "top_predictions": [
+        {
+          "word": "prediction",
+          "probability": 0.06830007582902908
+        },
+        {
+          "word": "data",
+          "probability": 0.06154557317495346
+        },
+        {
+          "word": "learn",
+          "probability": 0.05705845728516579
+        },
+        {
+          "word": "to",
+          "probability": 0.05074121057987213
+        },
+        {
+          "word": "model",
+          "probability": 0.04481707513332367
+        }
+      ]
+    },
+    {
+      "context": "careful evaluation",
+      "actual": "helps",
+      "predicted": "intelligence",
+      "actual_probability": 0.010806587524712086,
+      "predicted_probability": 0.08526681363582611,
+      "top_predictions": [
+        {
+          "word": "intelligence",
+          "probability": 0.08526681363582611
+        },
+        {
+          "word": "evaluation",
+          "probability": 0.06844644248485565
+        },
+        {
+          "word": "text",
+          "probability": 0.03650061786174774
+        },
+        {
+          "word": "cleaned",
+          "probability": 0.03032810613512993
+        },
+        {
+          "word": "before",
+          "probability": 0.0295560359954834
+        }
+      ]
+    },
+    {
+      "context": "<OOV> data",
+      "actual": "should",
+      "predicted": "learning",
+      "actual_probability": 0.012528745457530022,
+      "predicted_probability": 0.10886754095554352,
+      "top_predictions": [
+        {
+          "word": "learning",
+          "probability": 0.10886754095554352
+        },
+        {
+          "word": "science",
+          "probability": 0.08364854753017426
+        },
+        {
+          "word": "data",
+          "probability": 0.0823814645409584
+        },
+        {
+          "word": "and",
+          "probability": 0.06032620742917061
+        },
+        {
+          "word": "machine",
+          "probability": 0.03892061114311218
+        }
+      ]
+    },
+    {
+      "context": "machine learning requires <OOV>",
+      "actual": "training",
+      "predicted": "data",
+      "actual_probability": 0.01381715014576912,
+      "predicted_probability": 0.07218872755765915,
+      "top_predictions": [
+        {
+          "word": "data",
+          "probability": 0.07218872755765915
+        },
+        {
+          "word": "improve",
+          "probability": 0.06198543682694435
+        },
+        {
+          "word": "learn",
+          "probability": 0.05973277986049652
+        },
+        {
+          "word": "prediction",
+          "probability": 0.05737104266881943
+        },
+        {
+          "word": "can",
+          "probability": 0.05464432016015053
+        }
+      ]
+    },
+    {
+      "context": "model training",
+      "actual": "uses",
+      "predicted": "intelligence",
+      "actual_probability": 0.013876301236450672,
+      "predicted_probability": 0.05015251040458679,
+      "top_predictions": [
+        {
+          "word": "intelligence",
+          "probability": 0.05015251040458679
+        },
+        {
+          "word": "evaluation",
+          "probability": 0.03233674168586731
+        },
+        {
+          "word": "predictions",
+          "probability": 0.024340854957699776
+        },
+        {
+          "word": "is",
+          "probability": 0.022992754355072975
+        },
+        {
+          "word": "networks",
+          "probability": 0.021758196875452995
+        }
+      ]
+    },
+    {
+      "context": "machine learning <OOV>",
+      "actual": "useful",
+      "predicted": "data",
+      "actual_probability": 0.015525680966675282,
+      "predicted_probability": 0.06876198947429657,
+      "top_predictions": [
+        {
+          "word": "data",
+          "probability": 0.06876198947429657
+        },
+        {
+          "word": "prediction",
+          "probability": 0.06622708588838577
+        },
+        {
+          "word": "learn",
+          "probability": 0.06388477236032486
+        },
+        {
+          "word": "improve",
+          "probability": 0.058141663670539856
+        },
+        {
+          "word": "can",
+          "probability": 0.05379892513155937
+        }
+      ]
+    },
+    {
+      "context": "careful",
+      "actual": "evaluation",
+      "predicted": "data",
+      "actual_probability": 0.01598949357867241,
+      "predicted_probability": 0.04044251888990402,
+      "top_predictions": [
+        {
+          "word": "data",
+          "probability": 0.04044251888990402
+        },
+        {
+          "word": "models",
+          "probability": 0.03483745455741882
+        },
+        {
+          "word": "is",
+          "probability": 0.03191428259015083
+        },
+        {
+          "word": "can",
+          "probability": 0.031845077872276306
+        },
+        {
+          "word": "learning",
+          "probability": 0.027813855558633804
+        }
+      ]
+    },
+    {
+      "context": "models should use <OOV> <OOV>",
+      "actual": "data",
+      "predicted": "training",
+      "actual_probability": 0.01784374564886093,
+      "predicted_probability": 0.11437345296144485,
+      "top_predictions": [
+        {
+          "word": "training",
+          "probability": 0.11437345296144485
+        },
+        {
+          "word": "the",
+          "probability": 0.10077650099992752
+        },
+        {
+          "word": "during",
+          "probability": 0.06265167891979218
+        },
+        {
+          "word": "model",
+          "probability": 0.059429798275232315
+        },
+        {
+          "word": "words",
+          "probability": 0.05456407740712166
+        }
+      ]
+    },
+    {
+      "context": "language models learn",
+      "actual": "patterns",
+      "predicted": "learn",
+      "actual_probability": 0.018680695444345474,
+      "predicted_probability": 0.08127188682556152,
+      "top_predictions": [
+        {
+          "word": "learn",
+          "probability": 0.08127188682556152
+        },
+        {
+          "word": "from",
+          "probability": 0.07770717889070511
+        },
+        {
+          "word": "networks",
+          "probability": 0.05561928078532219
+        },
+        {
+          "word": "improve",
+          "probability": 0.053963445127010345
+        },
+        {
+          "word": "to",
+          "probability": 0.04620703309774399
+        }
+      ]
+    },
+    {
+      "context": "machine learning",
+      "actual": "requires",
+      "predicted": "models",
+      "actual_probability": 0.01891576312482357,
+      "predicted_probability": 0.1349095106124878,
+      "top_predictions": [
+        {
+          "word": "models",
+          "probability": 0.1349095106124878
+        },
+        {
+          "word": "data",
+          "probability": 0.09180228412151337
+        },
+        {
+          "word": "learning",
+          "probability": 0.07226136326789856
+        },
+        {
+          "word": "can",
+          "probability": 0.06584325432777405
+        },
+        {
+          "word": "is",
+          "probability": 0.05278843641281128
+        }
+      ]
+    },
+    {
+      "context": "machine learning models should",
+      "actual": "use",
+      "predicted": "learn",
+      "actual_probability": 0.02375890128314495,
+      "predicted_probability": 0.08569517731666565,
+      "top_predictions": [
+        {
+          "word": "learn",
+          "probability": 0.08569517731666565
+        },
+        {
+          "word": "from",
+          "probability": 0.07712522149085999
+        },
+        {
+          "word": "improve",
+          "probability": 0.05555072799324989
+        },
+        {
+          "word": "networks",
+          "probability": 0.054071567952632904
+        },
+        {
+          "word": "to",
+          "probability": 0.053277138620615005
+        }
+      ]
+    },
+    {
+      "context": "deep learning",
+      "actual": "uses",
+      "predicted": "models",
+      "actual_probability": 0.02551182359457016,
+      "predicted_probability": 0.12926438450813293,
+      "top_predictions": [
+        {
+          "word": "models",
+          "probability": 0.12926438450813293
+        },
+        {
+          "word": "data",
+          "probability": 0.0902646854519844
+        },
+        {
+          "word": "learning",
+          "probability": 0.07172388583421707
+        },
+        {
+          "word": "can",
+          "probability": 0.06493811309337616
+        },
+        {
+          "word": "is",
+          "probability": 0.05418094992637634
+        }
+      ]
+    },
+    {
+      "context": "validation data",
+      "actual": "helps",
+      "predicted": "learning",
+      "actual_probability": 0.02780812792479992,
+      "predicted_probability": 0.15293563902378082,
+      "top_predictions": [
+        {
+          "word": "learning",
+          "probability": 0.15293563902378082
+        },
+        {
+          "word": "data",
+          "probability": 0.08708539605140686
+        },
+        {
+          "word": "science",
+          "probability": 0.0758192166686058
+        },
+        {
+          "word": "models",
+          "probability": 0.054965972900390625
+        },
+        {
+          "word": "and",
+          "probability": 0.04919792711734772
+        }
+      ]
+    }
+  ]
+}

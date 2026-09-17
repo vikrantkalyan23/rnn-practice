@@ -15,6 +15,9 @@ MODEL_CONFIG_PATH = MODEL_DIR / "config.json"
 HISTORY_PATH = MODEL_DIR / "training_history.json"
 
 OUTPUT_DIR = BASE_DIR / "outputs"
+FINAL_TEST_METRICS_PATH = OUTPUT_DIR / "final_test_metrics.json"
+ERROR_ANALYSIS_PATH = OUTPUT_DIR / "error_analysis.json"
+LR_REFINEMENT_PATH = OUTPUT_DIR / "learning_rate_refinement.json"
 
 # Model and training defaults are intentionally small for this tiny corpus.
 SEQUENCE_LENGTH = 5
@@ -23,8 +26,9 @@ EMBEDDING_DIM = 16
 LSTM_UNITS = 12
 DROPOUT = 0.50
 L2_STRENGTH = 0.001
-LEARNING_RATE = 0.001
+LEARNING_RATE = 0.0015
 VALIDATION_RATIO = 0.2
+TEST_RATIO = 0.15
 BATCH_SIZE = 8
 EPOCHS = 150
 RANDOM_SEED = 11

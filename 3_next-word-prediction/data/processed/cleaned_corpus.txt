@@ -78,3 +78,235 @@ clean data helps machine learning models improve
 more examples help language models learn context
 careful evaluation helps detect overfitting
 simple baselines make model results easier to understand
+supervised learning uses labeled examples to learn a mapping
+supervised learning can solve classification and regression problems
+supervised learning compares predictions with known target values
+unsupervised learning discovers structure in unlabeled data
+unsupervised learning can group similar examples into clusters
+unsupervised learning helps reveal hidden patterns in data
+reinforcement learning improves behavior through rewards and feedback
+reinforcement learning agents learn by interacting with an environment
+classification models assign examples to predefined categories
+classification accuracy measures the fraction of correct predictions
+binary classification chooses between two possible classes
+multiclass classification chooses among several possible classes
+regression models predict continuous numeric values
+regression error measures distance between predictions and targets
+linear regression learns a weighted relationship between variables
+logistic regression estimates probabilities for classification
+decision trees split data using simple feature rules
+random forests combine predictions from many decision trees
+ensemble methods combine several models to improve reliability
+features describe useful properties of each example
+feature engineering transforms raw inputs into useful signals
+feature selection removes irrelevant or redundant variables
+categorical features represent values from a fixed set
+numeric features represent measurable quantities
+missing values require careful handling before model training
+data preprocessing prepares raw examples for a model
+data normalization places numeric features on a common scale
+data standardization centers values around a common distribution
+data augmentation creates useful variations of training examples
+balanced datasets contain enough examples from every important class
+imbalanced datasets can hide poor minority class performance
+sampling strategies can improve learning from imbalanced data
+training examples should match realistic production inputs
+validation examples guide choices during model development
+test examples estimate performance after development is complete
+data leakage gives a model information it should not receive
+leakage can produce misleadingly strong validation results
+grouped splitting keeps related examples in the same partition
+random splitting works well for independent observations
+time series data requires splits that preserve chronological order
+cross validation repeats evaluation across several data partitions
+three split evaluation separates training validation and test data
+reproducible experiments use fixed random seeds
+experiment tracking records settings results and model artifacts
+model checkpoints preserve useful weights during training
+early stopping ends training when validation results stop improving
+training curves show how loss changes across epochs
+validation curves help identify underfitting and overfitting
+underfitting occurs when a model cannot learn important patterns
+overfitting occurs when a model memorizes training details
+regularization encourages models to learn simpler patterns
+dropout randomly hides activations while the model is training
+weight decay discourages excessively large model parameters
+batch normalization can stabilize training in deep networks
+hyperparameters control training behavior and model capacity
+grid search evaluates a predefined set of hyperparameter choices
+random search explores combinations of hyperparameters efficiently
+learning rate determines how far weights move during each update
+a learning rate that is too high can make training unstable
+a learning rate that is too low can make training unnecessarily slow
+learning rate schedules reduce the update size during training
+gradient descent updates parameters to reduce the loss function
+stochastic gradient descent learns from small batches of examples
+the adam optimizer adapts updates for individual parameters
+gradients describe how parameter changes affect model loss
+backpropagation computes gradients through connected model layers
+gradient clipping prevents extremely large parameter updates
+vanishing gradients make long dependencies difficult to learn
+exploding gradients can cause unstable neural network training
+loss functions measure the quality of model predictions
+cross entropy loss rewards high probability for correct classes
+mean squared error is common for regression tasks
+an epoch processes every training example once
+a batch contains several examples processed together
+batch size affects memory use speed and gradient noise
+shuffling changes example order between training epochs
+model capacity describes the complexity a model can represent
+larger models require more data and computation
+smaller models can train quickly and deploy efficiently
+neural network layers transform one representation into another
+dense layers connect every input value to every output unit
+activation functions allow networks to learn nonlinear relationships
+the relu activation keeps positive values and removes negative values
+the softmax function converts scores into class probabilities
+embeddings place related tokens near each other in vector space
+word embeddings capture useful semantic relationships
+embedding dimensions control the size of token representations
+sequence models process ordered inputs such as words or events
+recurrent networks pass hidden state through a sequence
+long short term memory networks preserve useful earlier information
+lstm gates decide what information to keep update and forget
+gated recurrent units provide a simpler recurrent architecture
+bidirectional networks read context from both sequence directions
+causal language models only use tokens that appear before the target
+next word prediction is a causal language modeling task
+language modeling assigns probabilities to sequences of tokens
+a tokenizer converts text into a sequence of token identifiers
+word tokenization treats each known word as a separate unit
+subword tokenization represents rare words using smaller pieces
+character tokenization can represent any spelling with a small vocabulary
+tokenization choices affect vocabulary size and sequence length
+unknown tokens replace words missing from the model vocabulary
+a larger vocabulary can represent more words directly
+a smaller vocabulary provides more examples for each output class
+vocabulary coverage measures how much evaluation text is recognized
+rare words are difficult to learn from a small corpus
+frequent words receive more training updates than rare words
+context length controls how many previous tokens the model sees
+short contexts are efficient but may miss useful information
+long contexts can capture broader meaning and dependencies
+padding gives variable length sequences a consistent shape
+masking tells a model which padded positions to ignore
+sequence boundaries prevent examples from crossing unrelated sentences
+sentence variety helps a model generalize to new wording
+repeated templates can make evaluation results overly optimistic
+representative text improves predictions for real user prompts
+domain specific corpora teach terminology and writing patterns
+diverse corpora reduce dependence on a few repeated phrases
+cleaning text removes noise while preserving meaningful information
+lowercasing merges capitalized and lowercase forms of a word
+punctuation can provide useful structure when the tokenizer supports it
+spelling errors can create unnecessary vocabulary entries
+duplicate removal prevents common sentences from dominating training
+corpus quality matters as much as corpus size
+perplexity measures how surprised a language model is by text
+lower perplexity indicates better probability assigned to observed tokens
+perplexity is the exponential form of average cross entropy loss
+perplexity comparisons require the same tokenizer and evaluation data
+top one accuracy checks whether the best prediction is correct
+top three accuracy accepts a target among three likely predictions
+top five accuracy accepts a target among five likely predictions
+top k metrics reveal whether useful alternatives receive high probability
+accuracy alone does not measure probability calibration
+calibrated predictions assign probabilities that match observed frequencies
+confidence describes the probability assigned to a prediction
+confusion analysis reveals words that the model frequently mixes up
+error analysis groups failures into patterns that suggest improvements
+qualitative evaluation inspects predictions for realistic prompts
+quantitative evaluation summarizes performance with numeric metrics
+a baseline provides a simple reference for model performance
+a frequency baseline always predicts the most common target word
+meaningful improvements should exceed normal variation between runs
+multiple random seeds reveal sensitivity to initialization and data splits
+confidence intervals communicate uncertainty in measured performance
+small test sets produce noisy performance estimates
+larger test sets provide more stable evaluation results
+untouched test data should be used only for final evaluation
+tuning against test results weakens the credibility of the final score
+inference uses a trained model to make new predictions
+top k inference returns several likely words with probabilities
+greedy decoding always selects the highest probability token
+sampling chooses tokens according to their predicted probabilities
+temperature controls how sharp or flat a probability distribution becomes
+low temperature makes generated text more predictable
+high temperature makes generated text more varied
+temperature one preserves the original predicted distribution
+top k sampling limits choices to the most likely tokens
+random sampling can generate different text from the same prompt
+setting a sampling seed makes generated output reproducible
+text generation feeds each predicted word back into the next context
+generation quality can decline when early errors enter later contexts
+repetition penalties can discourage loops in generated text
+stopping conditions limit the length of generated sequences
+production inference should validate all user supplied inputs
+input validation rejects invalid lengths and unsupported values
+an application programming interface exposes model predictions to clients
+fastapi builds typed web interfaces for python applications
+request schemas define the data accepted by an endpoint
+response schemas define the data returned by an endpoint
+health endpoints help systems confirm that a service is available
+cross origin settings control which web clients can call an api
+api errors should provide clear safe messages
+model loading should happen once when the service starts
+reloading a model for every request wastes time and memory
+prediction latency measures how quickly an api returns a result
+batch inference can process many prompts more efficiently
+logging helps diagnose failures in a deployed service
+monitoring tracks latency errors traffic and model behavior
+production data may differ from the original training corpus
+data drift can reduce model quality after deployment
+feedback can identify prompts where predictions are not useful
+responsible systems protect sensitive user information
+rate limits can protect an api from excessive traffic
+next js can build an interactive interface for a prediction service
+a web interface can display likely words and confidence values
+form controls should provide sensible limits and defaults
+loading states show when the client is waiting for a response
+error states explain when a prediction request fails
+responsive layouts adapt to both narrow and wide screens
+accessible labels help people understand form controls
+keyboard navigation makes interfaces easier to operate
+clear visual hierarchy helps users scan predictions quickly
+probability bars make candidate confidence easy to compare
+the frontend sends structured requests to the prediction api
+the backend validates requests before running model inference
+json provides a common format for client and server communication
+environment variables configure service locations across deployments
+automated tests protect behavior while code changes
+unit tests verify small functions in isolation
+integration tests verify that components work together
+api tests check request validation and response structure
+model tests confirm that predictions have valid shapes and probabilities
+data tests detect empty files duplicates and malformed examples
+regression tests detect unexpected changes in established behavior
+continuous integration runs checks for every proposed code change
+version control records how code and data evolve over time
+clear documentation makes experiments easier to reproduce
+dependency files record the libraries required by a project
+virtual environments isolate project dependencies from system packages
+python type hints document expected values and improve tooling
+small focused functions are easier to test and maintain
+descriptive names make machine learning code easier to follow
+configuration files keep important settings in one place
+saved artifacts connect training evaluation and deployment workflows
+model metadata should record vocabulary size and context length
+tokenizer artifacts must match the model used for inference
+changing the corpus requires retraining the tokenizer and model
+changing vocabulary size changes the models output layer
+better data often improves a small language model more than extra tuning
+more varied examples help the model learn robust word transitions
+careful tokenization can reduce the impact of rare vocabulary
+larger contexts can help when predictions depend on earlier words
+alternative architectures can model language more effectively
+transformers use attention to connect information across a sequence
+self attention weighs relevant tokens when building representations
+attention mechanisms handle long range context more directly
+pretrained models learn general language patterns from large corpora
+fine tuning adapts a pretrained model to a specific task
+transfer learning reduces the amount of task specific data required
+model selection should consider quality speed memory and complexity
+a practical system balances prediction quality with operational cost
+good machine learning work combines data code evaluation and judgment

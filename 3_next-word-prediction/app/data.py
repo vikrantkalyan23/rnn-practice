@@ -41,6 +41,46 @@ def split_text_by_line(
     return "\n".join(lines[:split_index]), "\n".join(lines[split_index:])
 
 
+def split_text_train_validation_test(
+    text: str,
+    validation_ratio: float = 0.2,
+    test_ratio: float = 0.15,
+    random_seed: int = 11,
+):
+    """Split independent sentences into train, validation, and untouched test text."""
+    lines = [line for line in clean_text(text).splitlines() if line]
+
+    if len(lines) < 3:
+        raise ValueError("The corpus needs at least three non-empty lines.")
+    if validation_ratio <= 0 or test_ratio <= 0:
+        raise ValueError("Validation and test ratios must be positive.")
+    if validation_ratio + test_ratio >= 1:
+        raise ValueError("Validation plus test ratio must leave training data.")
+
+    random_generator = np.random.default_rng(random_seed)
+    random_generator.shuffle(lines)
+
+    validation_size = max(1, int(round(len(lines) * validation_ratio)))
+    test_size = max(1, int(round(len(lines) * test_ratio)))
+
+    while validation_size + test_size >= len(lines):
+        if validation_size >= test_size and validation_size > 1:
+            validation_size -= 1
+        elif test_size > 1:
+            test_size -= 1
+        else:
+            raise ValueError("Not enough lines for train/validation/test split.")
+
+    test_start = len(lines) - test_size
+    validation_start = test_start - validation_size
+
+    train_lines = lines[:validation_start]
+    validation_lines = lines[validation_start:test_start]
+    test_lines = lines[test_start:]
+
+    return "\n".join(train_lines), "\n".join(validation_lines), "\n".join(test_lines)
+
+
 def create_tokenizer(text: str, max_vocab_size: int | None = None) -> Tokenizer:
     """Fit a tokenizer on training text only."""
     tokenizer = Tokenizer(

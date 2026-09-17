@@ -6,6 +6,6 @@
   "dropout": 0.5,
   "max_vocab_size": 80,
   "l2_strength": 0.001,
-  "learning_rate": 0.001,
+  "learning_rate": 0.0015,
   "batch_size": 8
 }

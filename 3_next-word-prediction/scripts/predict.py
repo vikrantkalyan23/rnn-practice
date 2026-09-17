@@ -16,6 +16,8 @@ def read_options():
     parser.add_argument("text", nargs="?", default="machine learning")
     parser.add_argument("--words", type=int, default=5)
     parser.add_argument("--top-k", type=int, default=5)
+    parser.add_argument("--temperature", type=float, default=1.0)
+    parser.add_argument("--sample", action="store_true")
     return parser.parse_args()
 
 
@@ -30,10 +32,20 @@ def main():
 
     print(f"Input: {options.text}")
     print("\nTop next-word candidates:")
-    for word, probability in predictor.predict_top_words(options.text, options.top_k):
+    for word, probability in predictor.predict_top_words(
+        options.text,
+        top_k=options.top_k,
+        temperature=options.temperature,
+    ):
         print(f"  {word:<15} {probability:.2%}")
 
-    generated = predictor.generate_text(options.text, next_words=options.words)
+    generated = predictor.generate_text(
+        options.text,
+        next_words=options.words,
+        temperature=options.temperature,
+        top_k=options.top_k,
+        sample=options.sample,
+    )
     print(f"\nGenerated: {generated}")
 
 

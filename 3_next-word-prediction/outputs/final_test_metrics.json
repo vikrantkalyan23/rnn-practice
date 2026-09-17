@@ -8,12 +8,12 @@
   "train_lines": 203,
   "validation_lines": 62,
   "test_lines": 47,
-  "test_examples": 223,
-  "test_target_coverage": 0.6501457725947521,
-  "test_loss": 5.561746120452881,
-  "test_perplexity": 260.27691461390407,
-  "test_accuracy": 0.044843047857284546,
-  "top_1_accuracy": 0.04484304932735426,
-  "top_3_accuracy": 0.1210762331838565,
-  "top_5_accuracy": 0.17937219730941703
+  "test_examples": 167,
+  "test_target_coverage": 0.4868804664723032,
+  "test_loss": 4.68787956237793,
+  "test_perplexity": 108.62260797265934,
+  "test_accuracy": 0.053892213851213455,
+  "top_1_accuracy": 0.05389221556886228,
+  "top_3_accuracy": 0.16167664670658682,
+  "top_5_accuracy": 0.23353293413173654
 }

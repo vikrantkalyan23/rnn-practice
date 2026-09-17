@@ -166,14 +166,14 @@ def evaluate_candidate(candidate, text):
             callbacks=[
                 EarlyStopping(
                     monitor="val_loss",
-                    patience=15,
+                    patience=8,
                     min_delta=0.001,
                     restore_best_weights=True,
                 ),
                 ReduceLROnPlateau(
                     monitor="val_loss",
                     factor=0.5,
-                    patience=6,
+                    patience=4,
                     min_lr=0.00001,
                 ),
             ],

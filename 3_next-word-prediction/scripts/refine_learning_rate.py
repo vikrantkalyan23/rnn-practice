@@ -24,14 +24,21 @@ from app.config import (  # noqa: E402
     LSTM_UNITS,
     MAX_VOCAB_SIZE,
     SEQUENCE_LENGTH,
+    TEST_RATIO,
+    TEST_SPLIT_SEED,
     VALIDATION_RATIO,
+    VALIDATION_SEEDS,
 )
-from app.data import get_vocabulary_size, prepare_datasets  # noqa: E402
+from app.data import (  # noqa: E402
+    create_sequences,
+    create_tokenizer,
+    get_vocabulary_size,
+    split_text_train_validation_test,
+)
 from app.network import build_model  # noqa: E402
 
 
 LEARNING_RATES = (0.00125, 0.0015, 0.00175)
-VALIDATION_SEEDS = (7, 11, 19)
 MEANINGFUL_ACCURACY_GAIN = 0.02
 REFERENCE_ACCURACY = 0.35856543978055316
 
@@ -49,12 +56,17 @@ def evaluate_learning_rate(learning_rate, text):
         tf.keras.backend.clear_session()
         set_random_seed(seed)
 
-        X_train, y_train, X_validation, y_validation, tokenizer = prepare_datasets(
+        train_text, validation_text, _ = split_text_train_validation_test(
             text,
-            sequence_length=SEQUENCE_LENGTH,
             validation_ratio=VALIDATION_RATIO,
-            random_seed=seed,
-            max_vocab_size=MAX_VOCAB_SIZE,
+            test_ratio=TEST_RATIO,
+            test_seed=TEST_SPLIT_SEED,
+            validation_seed=seed,
+        )
+        tokenizer = create_tokenizer(train_text, MAX_VOCAB_SIZE)
+        X_train, y_train = create_sequences(train_text, tokenizer, SEQUENCE_LENGTH)
+        X_validation, y_validation = create_sequences(
+            validation_text, tokenizer, SEQUENCE_LENGTH
         )
         model = build_model(
             vocab_size=get_vocabulary_size(tokenizer),
@@ -145,6 +157,8 @@ def main():
         "selection_metric": "lowest mean validation loss across three splits",
         "tuning_stage": "final learning-rate-only refinement",
         "validation_seeds": list(VALIDATION_SEEDS),
+        "test_split_seed": TEST_SPLIT_SEED,
+        "test_partition_used_for_tuning": False,
         "learning_rates": list(LEARNING_RATES),
         "reference_accuracy": REFERENCE_ACCURACY,
         "meaningful_accuracy_gain": MEANINGFUL_ACCURACY_GAIN,

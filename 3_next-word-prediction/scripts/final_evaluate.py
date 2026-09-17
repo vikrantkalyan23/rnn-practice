@@ -19,6 +19,7 @@ from app.config import (  # noqa: E402
     MODEL_PATH,
     RANDOM_SEED,
     TEST_RATIO,
+    TEST_SPLIT_SEED,
     TOKENIZER_PATH,
     VALIDATION_RATIO,
 )
@@ -60,7 +61,8 @@ def main():
         text,
         validation_ratio=VALIDATION_RATIO,
         test_ratio=TEST_RATIO,
-        random_seed=RANDOM_SEED,
+        test_seed=TEST_SPLIT_SEED,
+        validation_seed=RANDOM_SEED,
     )
     X_test, y_test = create_sequences(
         test_text,
@@ -79,7 +81,9 @@ def main():
 
     metrics = {
         "split": "untouched_test",
-        "random_seed": RANDOM_SEED,
+        "test_split_seed": TEST_SPLIT_SEED,
+        "validation_seed": RANDOM_SEED,
+        "evaluation_protocol": "fixed-test-multi-validation-v1",
         "validation_ratio": VALIDATION_RATIO,
         "test_ratio": TEST_RATIO,
         "train_lines": len(train_text.splitlines()),

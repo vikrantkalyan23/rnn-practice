@@ -64,7 +64,7 @@ export default function Home() {
       <section className="workspace">
         <div className="panel controls">
           <div>
-            <p className="eyebrow">LSTM inference</p>
+            <p className="eyebrow">Hybrid language inference</p>
             <h1>Next Word Predictor</h1>
           </div>
 

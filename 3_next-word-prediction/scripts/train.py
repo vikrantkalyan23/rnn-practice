@@ -35,6 +35,8 @@ from app.config import (  # noqa: E402
     SEQUENCE_LENGTH,
     TOKENIZER_PATH,
     TEST_RATIO,
+    TEST_SPLIT_SEED,
+    TRAINING_TEXT_PATH,
     VALIDATION_RATIO,
 )
 from app.data import (  # noqa: E402
@@ -43,6 +45,7 @@ from app.data import (  # noqa: E402
     get_vocabulary_size,
     prepare_datasets,
     save_tokenizer,
+    split_text_by_line,
     split_text_train_validation_test,
 )
 from app.network import build_model  # noqa: E402
@@ -75,7 +78,8 @@ def main():
             text,
             validation_ratio=VALIDATION_RATIO,
             test_ratio=TEST_RATIO,
-            random_seed=options.seed,
+            test_seed=TEST_SPLIT_SEED,
+            validation_seed=options.seed,
         )
         tokenizer = create_tokenizer(train_text, MAX_VOCAB_SIZE)
         X_train, y_train = create_sequences(
@@ -90,6 +94,11 @@ def main():
         )
         test_lines = len(test_text.splitlines())
     else:
+        train_text, _ = split_text_by_line(
+            text,
+            validation_ratio=VALIDATION_RATIO,
+            random_seed=options.seed,
+        )
         X_train, y_train, X_validation, y_validation, tokenizer = prepare_datasets(
             text,
             sequence_length=options.sequence_length,
@@ -108,6 +117,7 @@ def main():
 
     MODEL_DIR.mkdir(parents=True, exist_ok=True)
     save_tokenizer(tokenizer, TOKENIZER_PATH)
+    TRAINING_TEXT_PATH.write_text(train_text, encoding="utf-8")
 
     model = build_model(
         vocab_size=vocab_size,
@@ -167,6 +177,9 @@ def main():
         "sequence_length": options.sequence_length,
         "batch_size": options.batch_size,
         "random_seed": options.seed,
+        "validation_seed": options.seed,
+        "test_split_seed": TEST_SPLIT_SEED if options.holdout_test else None,
+        "evaluation_protocol": "fixed-test-multi-validation-v1",
         "validation_ratio": VALIDATION_RATIO,
         "test_ratio": TEST_RATIO if options.holdout_test else 0.0,
         "held_out_test": options.holdout_test,

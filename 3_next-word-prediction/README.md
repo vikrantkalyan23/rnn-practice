@@ -65,24 +65,35 @@ Short contexts are padded with zeros so every input has the same length:
 The model contains:
 
 1. `Embedding`: learns a numeric vector for each word.
-2. `LSTM(12)`: reads the ordered word vectors and keeps sequence information.
-3. `Dropout(0.50)`: reduces dependence on individual neurons.
+2. `LSTM(64)`: reads the ordered word vectors and keeps sequence information.
+3. `Dropout(0.25)`: reduces dependence on individual neurons.
 4. `Dense + softmax`: returns one probability for every vocabulary word.
 
-The model is intentionally compact because a large network memorizes this small
-corpus very quickly. It predicts the 80 most frequent training words. Rare words
+The model remains compact enough for local training while providing enough
+capacity for the expanded corpus. It predicts the 400 most frequent training words. Rare words
 can still appear as `<OOV>` context, but they are excluded as prediction targets.
-This prevents hundreds of one-example classes from dominating training.
+This retains recurring vocabulary without letting hundreds of one-example
+classes dominate training.
 
-## Leakage-Safe Validation
+## Fixed Evaluation Protocol
 
 The corpus contains independent sentences, not a chronological time series.
-The pipeline therefore shuffles complete lines with a fixed seed and assigns
-whole lines to either training or validation.
+The pipeline first selects one permanent 15% test partition with test seed
+`2025`. That partition never changes with model or validation seeds. The
+remaining development lines are divided into train and validation partitions
+with validation seeds `7`, `11`, and `19` for multi-split evaluation.
 
 The split happens before sliding sequences are generated. As a result, two
 overlapping phrases from the same sentence cannot appear on opposite sides of
-the split. The tokenizer is also fitted on training text only.
+the split. A fresh tokenizer is fitted on each split's training text only. Model
+selection uses mean validation metrics; the fixed test set is reserved for the
+single final evaluation.
+
+Run the reproducible multi-split evaluation with:
+
+```bash
+uv run python scripts/multi_split_evaluate.py
+```
 
 ## Setup
 
@@ -234,11 +245,11 @@ uv run python scripts/predict.py "machine learning" \
 ```
 
 The script prints the five most likely next words with probabilities and then
-generates five words recursively.
-
-Recursive generation can repeat itself because every generated word becomes
-input for the next prediction. A larger and more varied corpus is the most
-important improvement for generation quality.
+generates words recursively. Inference interpolates the LSTM distribution with
+the longest matching phrase from the saved training split. The LSTM remains the
+fallback for unseen contexts, and an explicit sentence-end token prevents a
+known training sentence from drifting into unrelated repeated words. Validation
+and test text are never included in this inference index.
 
 ## 5. Run the API
 
@@ -294,20 +305,35 @@ The final learning-rate-only refinement tested `0.00125`, `0.0015`, and
 accuracy improvement over the existing three-split result, so LSTM tuning is
 stopped.
 
-The held-out final test run used `12` untouched lines:
+The fixed multi-split validation result is:
 
 ```text
-Loss       : 3.4453
-Perplexity : 31.35
-Top-1      : 26.83%
-Top-3      : 39.02%
-Top-5      : 43.90%
+Top-1      : 6.51% +/- 1.07%
+Top-3      : 14.97% +/- 2.19%
+Top-5      : 20.44% +/- 2.22%
+Perplexity : 179.92 +/- 13.39
 ```
+
+After model selection, the neural-only final evaluation used the permanent 47
+line test partition:
+
+```text
+Loss       : 5.5617
+Perplexity : 260.28
+Top-1      : 4.48%
+Top-3      : 12.11%
+Top-5      : 17.94%
+```
+
+These metrics evaluate the LSTM alone on unseen lines. The deployed hybrid
+predictor improves known domain phrases without leaking held-out text into
+inference.
 
 Detailed reports:
 
 ```text
 outputs/learning_rate_refinement.json
+outputs/multi_split_metrics.json
 outputs/final_test_metrics.json
 outputs/error_analysis.json
 ```

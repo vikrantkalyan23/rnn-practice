@@ -19,6 +19,7 @@ from app.config import (  # noqa: E402
     MODEL_PATH,
     OUTPUT_DIR,
     TEST_RATIO,
+    TEST_SPLIT_SEED,
     TOKENIZER_PATH,
     VALIDATION_RATIO,
 )
@@ -162,7 +163,8 @@ def main():
             text,
             VALIDATION_RATIO,
             saved_history.get("test_ratio", TEST_RATIO),
-            saved_history["random_seed"],
+            saved_history.get("test_split_seed", TEST_SPLIT_SEED),
+            saved_history.get("validation_seed", saved_history["random_seed"]),
         )
     else:
         train_text, validation_text = split_text_by_line(

@@ -14,8 +14,21 @@ import numpy as np  # noqa: E402
 import tensorflow as tf  # noqa: E402
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau  # noqa: E402
 
-from app.config import DATA_PATH, MAX_VOCAB_SIZE, OUTPUT_DIR, VALIDATION_RATIO  # noqa: E402
-from app.data import get_vocabulary_size, prepare_datasets  # noqa: E402
+from app.config import (  # noqa: E402
+    DATA_PATH,
+    MAX_VOCAB_SIZE,
+    OUTPUT_DIR,
+    TEST_RATIO,
+    TEST_SPLIT_SEED,
+    VALIDATION_RATIO,
+    VALIDATION_SEEDS,
+)
+from app.data import (  # noqa: E402
+    create_sequences,
+    create_tokenizer,
+    get_vocabulary_size,
+    split_text_train_validation_test,
+)
 from app.network import build_model  # noqa: E402
 
 
@@ -103,7 +116,6 @@ CANDIDATES = [
     },
 ]
 
-VALIDATION_SEEDS = (7, 11, 19)
 EPOCHS = 150
 
 
@@ -120,12 +132,19 @@ def evaluate_candidate(candidate, text):
         tf.keras.backend.clear_session()
         set_random_seed(seed)
 
-        X_train, y_train, X_validation, y_validation, tokenizer = prepare_datasets(
+        train_text, validation_text, _ = split_text_train_validation_test(
             text,
-            sequence_length=candidate["sequence_length"],
             validation_ratio=VALIDATION_RATIO,
-            random_seed=seed,
-            max_vocab_size=MAX_VOCAB_SIZE,
+            test_ratio=TEST_RATIO,
+            test_seed=TEST_SPLIT_SEED,
+            validation_seed=seed,
+        )
+        tokenizer = create_tokenizer(train_text, MAX_VOCAB_SIZE)
+        X_train, y_train = create_sequences(
+            train_text, tokenizer, candidate["sequence_length"]
+        )
+        X_validation, y_validation = create_sequences(
+            validation_text, tokenizer, candidate["sequence_length"]
         )
         model = build_model(
             vocab_size=get_vocabulary_size(tokenizer),
@@ -242,6 +261,8 @@ def main():
         "selection_metric": "lowest mean validation loss across three splits",
         "tuning_stage": "context length and training settings",
         "validation_seeds": list(VALIDATION_SEEDS),
+        "test_split_seed": TEST_SPLIT_SEED,
+        "test_partition_used_for_tuning": False,
         "best_candidate": results[0]["name"],
         "results": results,
     }

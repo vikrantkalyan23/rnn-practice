@@ -3,7 +3,7 @@ import json
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.config import MODEL_CONFIG_PATH, MODEL_PATH, TOKENIZER_PATH
+from app.config import MODEL_CONFIG_PATH, MODEL_PATH, TOKENIZER_PATH, TRAINING_TEXT_PATH
 from app.predictor import NextWordPredictor
 from app.schemas import PredictionRequest, PredictionResponse
 
@@ -23,6 +23,7 @@ predictor = NextWordPredictor(
     model_path=MODEL_PATH,
     tokenizer_path=TOKENIZER_PATH,
     sequence_length=model_config["sequence_length"],
+    training_text_path=TRAINING_TEXT_PATH,
 )
 
 

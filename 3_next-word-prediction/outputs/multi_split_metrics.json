@@ -1,0 +1,68 @@
+{
+  "protocol": "fixed-test-multi-validation-v1",
+  "test_split_seed": 2025,
+  "validation_seeds": [
+    7,
+    11,
+    19
+  ],
+  "test_partition_used_for_training_or_selection": false,
+  "splits": [
+    {
+      "validation_seed": 7,
+      "best_epoch": 8,
+      "train_lines": 203,
+      "validation_lines": 62,
+      "fixed_test_lines": 47,
+      "validation_examples": 297,
+      "validation_target_coverage": 0.6811926605504587,
+      "validation_loss": 5.18507719039917,
+      "validation_perplexity": 178.58723447771206,
+      "top_1_accuracy": 0.07070706784725189,
+      "top_3_accuracy": 0.14814814814814814,
+      "top_5_accuracy": 0.19865319865319866
+    },
+    {
+      "validation_seed": 11,
+      "best_epoch": 6,
+      "train_lines": 203,
+      "validation_lines": 62,
+      "fixed_test_lines": 47,
+      "validation_examples": 299,
+      "validation_target_coverage": 0.6644444444444444,
+      "validation_loss": 5.282965660095215,
+      "validation_perplexity": 196.95310605958343,
+      "top_1_accuracy": 0.05016722530126572,
+      "top_3_accuracy": 0.12374581939799331,
+      "top_5_accuracy": 0.1806020066889632
+    },
+    {
+      "validation_seed": 19,
+      "best_epoch": 9,
+      "train_lines": 203,
+      "validation_lines": 62,
+      "fixed_test_lines": 47,
+      "validation_examples": 282,
+      "validation_target_coverage": 0.6467889908256881,
+      "validation_loss": 5.101268768310547,
+      "validation_perplexity": 164.23014517299188,
+      "top_1_accuracy": 0.07446808367967606,
+      "top_3_accuracy": 0.1773049645390071,
+      "top_5_accuracy": 0.23404255319148937
+    }
+  ],
+  "aggregate": {
+    "mean_validation_loss": 5.189770539601644,
+    "std_validation_loss": 0.074251647640999,
+    "mean_validation_perplexity": 179.92349523676248,
+    "std_validation_perplexity": 13.392466462119256,
+    "mean_top_1_accuracy": 0.06511412560939789,
+    "std_top_1_accuracy": 0.010680002548029269,
+    "mean_top_3_accuracy": 0.1497329773617162,
+    "std_top_3_accuracy": 0.021894128128886966,
+    "mean_top_5_accuracy": 0.20443258617788373,
+    "std_top_5_accuracy": 0.022196456064614303,
+    "mean_validation_target_coverage": 0.664142031940197,
+    "std_validation_target_coverage": 0.014046867091391309
+  }
+}

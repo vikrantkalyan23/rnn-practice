@@ -7,7 +7,12 @@ from pathlib import Path
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_DIR))
 
-from app.config import MODEL_CONFIG_PATH, MODEL_PATH, TOKENIZER_PATH  # noqa: E402
+from app.config import (  # noqa: E402
+    MODEL_CONFIG_PATH,
+    MODEL_PATH,
+    TOKENIZER_PATH,
+    TRAINING_TEXT_PATH,
+)
 from app.predictor import NextWordPredictor  # noqa: E402
 
 
@@ -28,6 +33,7 @@ def main():
         model_path=MODEL_PATH,
         tokenizer_path=TOKENIZER_PATH,
         sequence_length=config["sequence_length"],
+        training_text_path=TRAINING_TEXT_PATH,
     )
 
     print(f"Input: {options.text}")

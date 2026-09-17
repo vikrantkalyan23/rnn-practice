@@ -45,9 +45,10 @@ def split_text_train_validation_test(
     text: str,
     validation_ratio: float = 0.2,
     test_ratio: float = 0.15,
-    random_seed: int = 11,
+    test_seed: int = 2025,
+    validation_seed: int = 11,
 ):
-    """Split independent sentences into train, validation, and untouched test text."""
+    """Create a fixed test set and a separately seeded development split."""
     lines = [line for line in clean_text(text).splitlines() if line]
 
     if len(lines) < 3:
@@ -56,9 +57,6 @@ def split_text_train_validation_test(
         raise ValueError("Validation and test ratios must be positive.")
     if validation_ratio + test_ratio >= 1:
         raise ValueError("Validation plus test ratio must leave training data.")
-
-    random_generator = np.random.default_rng(random_seed)
-    random_generator.shuffle(lines)
 
     validation_size = max(1, int(round(len(lines) * validation_ratio)))
     test_size = max(1, int(round(len(lines) * test_ratio)))
@@ -71,12 +69,18 @@ def split_text_train_validation_test(
         else:
             raise ValueError("Not enough lines for train/validation/test split.")
 
-    test_start = len(lines) - test_size
-    validation_start = test_start - validation_size
+    test_generator = np.random.default_rng(test_seed)
+    test_order = test_generator.permutation(len(lines))
+    test_indices = set(int(index) for index in test_order[:test_size])
+    test_lines = [line for index, line in enumerate(lines) if index in test_indices]
+    development_lines = [
+        line for index, line in enumerate(lines) if index not in test_indices
+    ]
 
-    train_lines = lines[:validation_start]
-    validation_lines = lines[validation_start:test_start]
-    test_lines = lines[test_start:]
+    validation_generator = np.random.default_rng(validation_seed)
+    validation_generator.shuffle(development_lines)
+    validation_lines = development_lines[:validation_size]
+    train_lines = development_lines[validation_size:]
 
     return "\n".join(train_lines), "\n".join(validation_lines), "\n".join(test_lines)
 

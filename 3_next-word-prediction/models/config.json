@@ -1,11 +1,11 @@
 {
   "sequence_length": 5,
   "vocab_size": 160,
-  "embedding_dim": 32,
-  "lstm_units": 32,
-  "dropout": 0.4,
+  "embedding_dim": 48,
+  "lstm_units": 48,
+  "dropout": 0.3,
   "max_vocab_size": 160,
-  "l2_strength": 0.001,
+  "l2_strength": 0.0005,
   "learning_rate": 0.0015,
   "batch_size": 16
 }

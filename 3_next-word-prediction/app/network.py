@@ -7,11 +7,11 @@ from tensorflow.keras.regularizers import l2
 def build_model(
     vocab_size: int,
     sequence_length: int,
-    embedding_dim: int = 32,
-    lstm_units: int = 32,
-    dropout: float = 0.40,
+    embedding_dim: int = 48,
+    lstm_units: int = 48,
+    dropout: float = 0.30,
     learning_rate: float = 0.0015,
-    l2_strength: float = 0.001,
+    l2_strength: float = 0.0005,
 ):
     """Build an LSTM sized for the educational corpus."""
     model = Sequential(

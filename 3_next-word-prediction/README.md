@@ -65,8 +65,8 @@ Short contexts are padded with zeros so every input has the same length:
 The model contains:
 
 1. `Embedding`: learns a numeric vector for each word.
-2. `LSTM(32)`: reads the ordered word vectors and keeps sequence information.
-3. `Dropout(0.40)`: reduces dependence on individual neurons.
+2. `LSTM(48)`: reads the ordered word vectors and keeps sequence information.
+3. `Dropout(0.30)`: reduces dependence on individual neurons.
 4. `Dense + softmax`: returns one probability for every vocabulary word.
 
 The model remains compact enough for local training while providing enough
@@ -306,21 +306,21 @@ stopped.
 The fixed multi-split validation result is:
 
 ```text
-Top-1      : 7.74% +/- 2.75%
-Top-3      : 18.65% +/- 2.53%
-Top-5      : 25.97% +/- 2.86%
-Perplexity : 93.62 +/- 6.71
+Top-1      : 8.58% +/- 3.24%
+Top-3      : 19.93% +/- 3.17%
+Top-5      : 26.10% +/- 2.94%
+Perplexity : 88.60 +/- 8.36
 ```
 
 After model selection, the neural-only final evaluation used the permanent 47
 line test partition:
 
 ```text
-Loss       : 4.6879
-Perplexity : 108.62
-Top-1      : 5.39%
-Top-3      : 16.17%
-Top-5      : 23.35%
+Loss       : 4.6620
+Perplexity : 105.85
+Top-1      : 7.78%
+Top-3      : 17.37%
+Top-5      : 24.55%
 ```
 
 These metrics evaluate the LSTM alone on unseen lines. The deployed hybrid

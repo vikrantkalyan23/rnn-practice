@@ -10,10 +10,10 @@
   "test_lines": 47,
   "test_examples": 167,
   "test_target_coverage": 0.4868804664723032,
-  "test_loss": 4.68787956237793,
-  "test_perplexity": 108.62260797265934,
-  "test_accuracy": 0.053892213851213455,
-  "top_1_accuracy": 0.05389221556886228,
-  "top_3_accuracy": 0.16167664670658682,
-  "top_5_accuracy": 0.23353293413173654
+  "test_loss": 4.661997318267822,
+  "test_perplexity": 105.84728187961333,
+  "test_accuracy": 0.07784431427717209,
+  "top_1_accuracy": 0.07784431137724551,
+  "top_3_accuracy": 0.17365269461077845,
+  "top_5_accuracy": 0.24550898203592814
 }

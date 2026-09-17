@@ -22,59 +22,89 @@ from app.network import build_model  # noqa: E402
 # A small, deliberate search is easier to understand than a large blind grid.
 CANDIDATES = [
     {
-        "name": "current",
-        "embedding_dim": 16,
-        "lstm_units": 12,
-        "dropout": 0.40,
-        "learning_rate": 0.001,
-        "l2_strength": 0.001,
-    },
-    {
-        "name": "smaller_embedding",
-        "embedding_dim": 12,
-        "lstm_units": 12,
-        "dropout": 0.40,
-        "learning_rate": 0.001,
-        "l2_strength": 0.001,
-    },
-    {
-        "name": "smaller_lstm",
-        "embedding_dim": 16,
-        "lstm_units": 8,
-        "dropout": 0.40,
-        "learning_rate": 0.001,
-        "l2_strength": 0.001,
-    },
-    {
-        "name": "more_dropout",
+        "name": "tuned_baseline",
         "embedding_dim": 16,
         "lstm_units": 12,
         "dropout": 0.50,
         "learning_rate": 0.001,
         "l2_strength": 0.001,
+        "sequence_length": 5,
+        "batch_size": 8,
     },
     {
-        "name": "stronger_l2",
+        "name": "context_3",
         "embedding_dim": 16,
         "lstm_units": 12,
-        "dropout": 0.40,
+        "dropout": 0.50,
         "learning_rate": 0.001,
-        "l2_strength": 0.002,
+        "l2_strength": 0.001,
+        "sequence_length": 3,
+        "batch_size": 8,
     },
     {
-        "name": "faster_learning",
+        "name": "context_4",
         "embedding_dim": 16,
         "lstm_units": 12,
-        "dropout": 0.40,
-        "learning_rate": 0.002,
+        "dropout": 0.50,
+        "learning_rate": 0.001,
         "l2_strength": 0.001,
+        "sequence_length": 4,
+        "batch_size": 8,
+    },
+    {
+        "name": "context_6",
+        "embedding_dim": 16,
+        "lstm_units": 12,
+        "dropout": 0.50,
+        "learning_rate": 0.001,
+        "l2_strength": 0.001,
+        "sequence_length": 6,
+        "batch_size": 8,
+    },
+    {
+        "name": "batch_4",
+        "embedding_dim": 16,
+        "lstm_units": 12,
+        "dropout": 0.50,
+        "learning_rate": 0.001,
+        "l2_strength": 0.001,
+        "sequence_length": 5,
+        "batch_size": 4,
+    },
+    {
+        "name": "batch_16",
+        "embedding_dim": 16,
+        "lstm_units": 12,
+        "dropout": 0.50,
+        "learning_rate": 0.001,
+        "l2_strength": 0.001,
+        "sequence_length": 5,
+        "batch_size": 16,
+    },
+    {
+        "name": "dropout_55",
+        "embedding_dim": 16,
+        "lstm_units": 12,
+        "dropout": 0.55,
+        "learning_rate": 0.001,
+        "l2_strength": 0.001,
+        "sequence_length": 5,
+        "batch_size": 8,
+    },
+    {
+        "name": "learning_0015",
+        "embedding_dim": 16,
+        "lstm_units": 12,
+        "dropout": 0.50,
+        "learning_rate": 0.0015,
+        "l2_strength": 0.001,
+        "sequence_length": 5,
+        "batch_size": 8,
     },
 ]
 
 VALIDATION_SEEDS = (7, 11, 19)
-SEQUENCE_LENGTH = 5
 EPOCHS = 150
-BATCH_SIZE = 8
 
 
 def set_random_seed(seed):
@@ -92,14 +122,14 @@ def evaluate_candidate(candidate, text):
 
         X_train, y_train, X_validation, y_validation, tokenizer = prepare_datasets(
             text,
-            sequence_length=SEQUENCE_LENGTH,
+            sequence_length=candidate["sequence_length"],
             validation_ratio=VALIDATION_RATIO,
             random_seed=seed,
             max_vocab_size=MAX_VOCAB_SIZE,
         )
         model = build_model(
             vocab_size=get_vocabulary_size(tokenizer),
-            sequence_length=SEQUENCE_LENGTH,
+            sequence_length=candidate["sequence_length"],
             embedding_dim=candidate["embedding_dim"],
             lstm_units=candidate["lstm_units"],
             dropout=candidate["dropout"],
@@ -111,7 +141,7 @@ def evaluate_candidate(candidate, text):
             y_train,
             validation_data=(X_validation, y_validation),
             epochs=EPOCHS,
-            batch_size=BATCH_SIZE,
+            batch_size=candidate["batch_size"],
             shuffle=False,
             verbose=0,
             callbacks=[
@@ -210,6 +240,7 @@ def main():
     results.sort(key=lambda result: result["mean_validation_loss"])
     report = {
         "selection_metric": "lowest mean validation loss across three splits",
+        "tuning_stage": "context length and training settings",
         "validation_seeds": list(VALIDATION_SEEDS),
         "best_candidate": results[0]["name"],
         "results": results,

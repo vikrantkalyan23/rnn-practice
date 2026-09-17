@@ -146,6 +146,8 @@ def main():
         "dropout": DROPOUT,
         "max_vocab_size": MAX_VOCAB_SIZE,
         "l2_strength": L2_STRENGTH,
+        "learning_rate": LEARNING_RATE,
+        "batch_size": options.batch_size,
     }
     MODEL_CONFIG_PATH.write_text(json.dumps(model_config, indent=2), encoding="utf-8")
 

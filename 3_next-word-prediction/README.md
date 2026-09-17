@@ -275,9 +275,11 @@ outputs/hyperparameter_tuning.json
 outputs/hyperparameter_tuning.png
 ```
 
-The current winner uses dropout `0.50`. Across the three splits it achieved
-mean validation loss `3.1719`, mean validation accuracy `32.81%`, and a mean
-accuracy gap of `5.55` percentage points.
+The stage-two average winner used dropout `0.50` and learning rate `0.0015`.
+Across three splits it achieved mean validation loss `3.1398`, mean validation
+accuracy `35.86%`, and a mean accuracy gap of `5.59` percentage points. However,
+it regressed the production seed-11 result, so the saved model conservatively
+keeps learning rate `0.001`.
 
 ## Current Evaluation
 

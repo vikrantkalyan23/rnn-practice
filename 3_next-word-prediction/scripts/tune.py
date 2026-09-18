@@ -4,6 +4,7 @@ import json
 import os
 import random
 import sys
+from collections import Counter
 from pathlib import Path
 
 
@@ -19,6 +20,7 @@ from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau  # noqa:
 from app.config import DATA_PATH, OUTPUT_DIR  # noqa: E402
 from app.data import (  # noqa: E402
     count_possible_targets,
+    clean_text,
     create_sequences,
     create_tokenizer,
     get_vocabulary_size,
@@ -82,6 +84,57 @@ def top_k_accuracy(probabilities, targets, k):
     k = min(k, probabilities.shape[1])
     top_ids = np.argpartition(probabilities, -k, axis=1)[:, -k:]
     return float(np.mean(np.any(top_ids == targets[:, None], axis=1)))
+
+
+def build_dataset_profile(text, config):
+    lines = clean_text(text).splitlines()
+    lengths = np.asarray([len(line.split()) for line in lines])
+    counts = Counter(word for line in lines for word in line.split())
+    split_profiles = []
+    protocol = config["protocol"]
+    baseline = config["baseline"]
+
+    for seed in protocol["validation_seeds"]:
+        train_text, validation_text, test_text = split_text_train_validation_test(
+            text,
+            validation_ratio=protocol["validation_ratio"],
+            test_ratio=protocol["test_ratio"],
+            test_seed=protocol["test_split_seed"],
+            validation_seed=seed,
+        )
+        train_words = set(train_text.split())
+        validation_words = set(validation_text.split())
+        tokenizer = create_tokenizer(train_text, baseline["max_vocab_size"])
+        _, validation_targets = create_sequences(
+            validation_text, tokenizer, baseline["sequence_length"]
+        )
+        split_profiles.append(
+            {
+                "validation_seed": seed,
+                "train_lines": len(train_text.splitlines()),
+                "validation_lines": len(validation_text.splitlines()),
+                "fixed_test_lines": len(test_text.splitlines()),
+                "unseen_validation_word_types": len(validation_words - train_words),
+                "validation_target_coverage": len(validation_targets)
+                / count_possible_targets(validation_text),
+            }
+        )
+
+    return {
+        "lines": len(lines),
+        "tokens": int(lengths.sum()),
+        "unique_words": len(counts),
+        "singleton_words": sum(count == 1 for count in counts.values()),
+        "words_seen_at_least_twice": sum(count >= 2 for count in counts.values()),
+        "words_seen_at_least_three_times": sum(count >= 3 for count in counts.values()),
+        "sentence_length": {
+            "minimum": int(lengths.min()),
+            "median": float(np.median(lengths)),
+            "p90": float(np.percentile(lengths, 90)),
+            "maximum": int(lengths.max()),
+        },
+        "split_profiles": split_profiles,
+    }
 
 
 def evaluate_candidate(candidate, text, protocol):
@@ -213,6 +266,7 @@ def write_report(config, results, status):
         "status": status,
         "selection_metric": "lowest mean validation loss across fixed validation splits",
         "protocol": config["protocol"],
+        "dataset_profile": config["dataset_profile"],
         "test_partition_used_for_tuning": False,
         "completed_experiments": len(results),
         "best_candidate": ranked[0]["name"] if ranked else None,
@@ -258,6 +312,7 @@ def main():
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     config, candidates = load_experiment_config()
     text = DATA_PATH.read_text(encoding="utf-8")
+    config["dataset_profile"] = build_dataset_profile(text, config)
     config["protocol"]["corpus_test_protocol_fingerprint"] = hashlib.sha256(
         f"{config['protocol']['test_split_seed']}:{text}".encode()
     ).hexdigest()

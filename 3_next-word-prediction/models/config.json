@@ -1,10 +1,10 @@
 {
   "sequence_length": 7,
-  "vocab_size": 160,
+  "vocab_size": 120,
   "embedding_dim": 48,
   "lstm_units": 48,
   "dropout": 0.3,
-  "max_vocab_size": 160,
+  "max_vocab_size": 120,
   "l2_strength": 0.0005,
   "learning_rate": 0.0015,
   "batch_size": 16

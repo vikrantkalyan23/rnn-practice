@@ -1,33 +1,33 @@
 {
-  "total_errors": 156,
-  "error_rate": 0.9341317365269461,
+  "total_errors": 136,
+  "error_rate": 0.918918918918919,
   "lowest_confidence_actual_word_errors": [
     {
-      "context": "<OOV> <OOV> gradients <OOV> <OOV> model",
+      "context": "<OOV> <OOV> <OOV> <OOV> <OOV> model",
       "actual": "layers",
       "predicted": "and",
-      "actual_probability": 0.0004199712711852044,
-      "predicted_probability": 0.09058429300785065,
+      "actual_probability": 0.0002563988964539021,
+      "predicted_probability": 0.07315715402364731,
       "top_predictions": [
         {
           "word": "and",
-          "probability": 0.09058429300785065
-        },
-        {
-          "word": "to",
-          "probability": 0.05136610195040703
+          "probability": 0.07315715402364731
         },
         {
           "word": "a",
-          "probability": 0.04484565928578377
+          "probability": 0.05518316850066185
         },
         {
-          "word": "model",
-          "probability": 0.044326137751340866
+          "word": "to",
+          "probability": 0.052522510290145874
+        },
+        {
+          "word": "data",
+          "probability": 0.04601825028657913
         },
         {
           "word": "training",
-          "probability": 0.04391524940729141
+          "probability": 0.037077900022268295
         }
       ]
     },
@@ -35,144 +35,86 @@
       "context": "<OOV> <OOV> <OOV>",
       "actual": "small",
       "predicted": "the",
-      "actual_probability": 0.00047695302055217326,
-      "predicted_probability": 0.12291311472654343,
+      "actual_probability": 0.0003300936659798026,
+      "predicted_probability": 0.17495952546596527,
       "top_predictions": [
         {
           "word": "the",
-          "probability": 0.12291311472654343
+          "probability": 0.17495952546596527
         },
         {
           "word": "to",
-          "probability": 0.04529094323515892
+          "probability": 0.046359989792108536
         },
         {
           "word": "can",
-          "probability": 0.032284047454595566
+          "probability": 0.03673185035586357
         },
         {
           "word": "and",
-          "probability": 0.030531534925103188
+          "probability": 0.03610348328948021
         },
         {
-          "word": "model",
-          "probability": 0.02998700737953186
+          "word": "training",
+          "probability": 0.030898654833436012
         }
       ]
     },
     {
       "context": "<OOV> <OOV> <OOV> small",
       "actual": "functions",
-      "predicted": "model",
-      "actual_probability": 0.0005176670383661985,
-      "predicted_probability": 0.05749901011586189,
+      "predicted": "to",
+      "actual_probability": 0.0005266640218906105,
+      "predicted_probability": 0.07416427135467529,
       "top_predictions": [
         {
-          "word": "model",
-          "probability": 0.05749901011586189
+          "word": "to",
+          "probability": 0.07416427135467529
         },
         {
           "word": "and",
-          "probability": 0.04959503188729286
-        },
-        {
-          "word": "to",
-          "probability": 0.04866213724017143
+          "probability": 0.0652906522154808
         },
         {
           "word": "the",
-          "probability": 0.046383921056985855
+          "probability": 0.05294399335980415
+        },
+        {
+          "word": "model",
+          "probability": 0.04963425546884537
         },
         {
           "word": "a",
-          "probability": 0.03986778482794762
-        }
-      ]
-    },
-    {
-      "context": "api <OOV> <OOV>",
-      "actual": "request",
-      "predicted": "can",
-      "actual_probability": 0.0006696711643598974,
-      "predicted_probability": 0.07752831280231476,
-      "top_predictions": [
-        {
-          "word": "can",
-          "probability": 0.07752831280231476
-        },
-        {
-          "word": "the",
-          "probability": 0.06922632455825806
-        },
-        {
-          "word": "learning",
-          "probability": 0.03965718671679497
-        },
-        {
-          "word": "should",
-          "probability": 0.032421693205833435
-        },
-        {
-          "word": "models",
-          "probability": 0.027836762368679047
+          "probability": 0.04883250221610069
         }
       ]
     },
     {
       "context": "<OOV> is the <OOV> <OOV> of <OOV>",
       "actual": "cross",
-      "predicted": "data",
-      "actual_probability": 0.0009254469769075513,
-      "predicted_probability": 0.03868655115365982,
+      "predicted": "and",
+      "actual_probability": 0.0005477017257362604,
+      "predicted_probability": 0.06366152316331863,
       "top_predictions": [
         {
-          "word": "data",
-          "probability": 0.03868655115365982
-        },
-        {
           "word": "and",
-          "probability": 0.032652780413627625
+          "probability": 0.06366152316331863
         },
         {
-          "word": "a",
-          "probability": 0.032431744039058685
+          "word": "data",
+          "probability": 0.057451680302619934
         },
         {
           "word": "training",
-          "probability": 0.02812638133764267
+          "probability": 0.05154498293995857
         },
         {
           "word": "of",
-          "probability": 0.025283966213464737
-        }
-      ]
-    },
-    {
-      "context": "<OOV> a <OOV> <OOV>",
-      "actual": "makes",
-      "predicted": "the",
-      "actual_probability": 0.0009499389561824501,
-      "predicted_probability": 0.09258493036031723,
-      "top_predictions": [
-        {
-          "word": "the",
-          "probability": 0.09258493036031723
-        },
-        {
-          "word": "to",
-          "probability": 0.05358843505382538
-        },
-        {
-          "word": "and",
-          "probability": 0.042985621839761734
-        },
-        {
-          "word": "model",
-          "probability": 0.04022035747766495
+          "probability": 0.04894806444644928
         },
         {
           "word": "a",
-          "probability": 0.037900734692811966
+          "probability": 0.040356073528528214
         }
       ]
     },
@@ -180,86 +122,57 @@
       "context": "word tokenization <OOV> <OOV> <OOV>",
       "actual": "word",
       "predicted": "and",
-      "actual_probability": 0.001176480669528246,
-      "predicted_probability": 0.08585071563720703,
+      "actual_probability": 0.0014227606588974595,
+      "predicted_probability": 0.10691867768764496,
       "top_predictions": [
         {
           "word": "and",
-          "probability": 0.08585071563720703
-        },
-        {
-          "word": "to",
-          "probability": 0.07550416886806488
+          "probability": 0.10691867768764496
         },
         {
           "word": "the",
-          "probability": 0.0716363936662674
-        },
-        {
-          "word": "model",
-          "probability": 0.058193400502204895
-        },
-        {
-          "word": "a",
-          "probability": 0.04464927688241005
-        }
-      ]
-    },
-    {
-      "context": "<OOV> <OOV> reveal <OOV> useful <OOV> <OOV>",
-      "actual": "high",
-      "predicted": "and",
-      "actual_probability": 0.0013810480013489723,
-      "predicted_probability": 0.05075402930378914,
-      "top_predictions": [
-        {
-          "word": "and",
-          "probability": 0.05075402930378914
-        },
-        {
-          "word": "data",
-          "probability": 0.03769487142562866
-        },
-        {
-          "word": "a",
-          "probability": 0.03626446798443794
-        },
-        {
-          "word": "training",
-          "probability": 0.03431594371795654
-        },
-        {
-          "word": "model",
-          "probability": 0.029962819069623947
-        }
-      ]
-    },
-    {
-      "context": "<OOV> <OOV> require the <OOV>",
-      "actual": "tokenizer",
-      "predicted": "and",
-      "actual_probability": 0.001443517510779202,
-      "predicted_probability": 0.08338725566864014,
-      "top_predictions": [
-        {
-          "word": "and",
-          "probability": 0.08338725566864014
-        },
-        {
-          "word": "model",
-          "probability": 0.05101340264081955
+          "probability": 0.09778787195682526
         },
         {
           "word": "to",
-          "probability": 0.048769980669021606
-        },
-        {
-          "word": "a",
-          "probability": 0.045652084052562714
+          "probability": 0.07021354138851166
         },
         {
           "word": "training",
-          "probability": 0.04232223704457283
+          "probability": 0.056416258215904236
+        },
+        {
+          "word": "a",
+          "probability": 0.056060124188661575
+        }
+      ]
+    },
+    {
+      "context": "api <OOV> <OOV> <OOV>",
+      "actual": "validation",
+      "predicted": "the",
+      "actual_probability": 0.0014381963992491364,
+      "predicted_probability": 0.17343594133853912,
+      "top_predictions": [
+        {
+          "word": "the",
+          "probability": 0.17343594133853912
+        },
+        {
+          "word": "to",
+          "probability": 0.05526542663574219
+        },
+        {
+          "word": "and",
+          "probability": 0.04178372770547867
+        },
+        {
+          "word": "training",
+          "probability": 0.03271735459566116
+        },
+        {
+          "word": "a",
+          "probability": 0.03139593079686165
         }
       ]
     },
@@ -267,289 +180,260 @@
       "context": "<OOV> <OOV> <OOV>",
       "actual": "length",
       "predicted": "the",
-      "actual_probability": 0.0014456277713179588,
-      "predicted_probability": 0.12291311472654343,
+      "actual_probability": 0.0019383454928174615,
+      "predicted_probability": 0.17495952546596527,
       "top_predictions": [
         {
           "word": "the",
-          "probability": 0.12291311472654343
+          "probability": 0.17495952546596527
         },
         {
           "word": "to",
-          "probability": 0.04529094323515892
+          "probability": 0.046359989792108536
         },
         {
           "word": "can",
-          "probability": 0.032284047454595566
+          "probability": 0.03673185035586357
         },
         {
           "word": "and",
-          "probability": 0.030531534925103188
+          "probability": 0.03610348328948021
         },
         {
-          "word": "model",
-          "probability": 0.02998700737953186
+          "word": "training",
+          "probability": 0.030898654833436012
         }
       ]
     },
     {
-      "context": "<OOV> <OOV>",
-      "actual": "error",
-      "predicted": "can",
-      "actual_probability": 0.0014476674841716886,
-      "predicted_probability": 0.07819123566150665,
-      "top_predictions": [
-        {
-          "word": "can",
-          "probability": 0.07819123566150665
-        },
-        {
-          "word": "the",
-          "probability": 0.05576597899198532
-        },
-        {
-          "word": "learning",
-          "probability": 0.050597526133060455
-        },
-        {
-          "word": "should",
-          "probability": 0.032717250287532806
-        },
-        {
-          "word": "models",
-          "probability": 0.028484869748353958
-        }
-      ]
-    },
-    {
-      "context": "language models <OOV> words from <OOV>",
-      "actual": "context",
+      "context": "<OOV> <OOV> <OOV> <OOV> <OOV>",
+      "actual": "that",
       "predicted": "and",
-      "actual_probability": 0.0019190371967852116,
-      "predicted_probability": 0.10260333120822906,
+      "actual_probability": 0.002230716636404395,
+      "predicted_probability": 0.11182031780481339,
       "top_predictions": [
         {
           "word": "and",
-          "probability": 0.10260333120822906
+          "probability": 0.11182031780481339
+        },
+        {
+          "word": "the",
+          "probability": 0.07362920045852661
         },
         {
           "word": "to",
-          "probability": 0.0603194385766983
-        },
-        {
-          "word": "training",
-          "probability": 0.0493931770324707
-        },
-        {
-          "word": "model",
-          "probability": 0.048188548535108566
+          "probability": 0.06785212457180023
         },
         {
           "word": "a",
-          "probability": 0.04796180874109268
-        }
-      ]
-    },
-    {
-      "context": "<OOV> <OOV> <OOV> <OOV> <OOV> <OOV>",
-      "actual": "updates",
-      "predicted": "and",
-      "actual_probability": 0.002030487172305584,
-      "predicted_probability": 0.09825993329286575,
-      "top_predictions": [
-        {
-          "word": "and",
-          "probability": 0.09825993329286575
-        },
-        {
-          "word": "to",
-          "probability": 0.059524308890104294
-        },
-        {
-          "word": "model",
-          "probability": 0.049388740211725235
+          "probability": 0.06205998361110687
         },
         {
           "word": "training",
-          "probability": 0.04473467543721199
-        },
-        {
-          "word": "a",
-          "probability": 0.044634319841861725
+          "probability": 0.05554809793829918
         }
       ]
     },
     {
-      "context": "<OOV> one",
-      "actual": "accuracy",
-      "predicted": "can",
-      "actual_probability": 0.0023048168513923883,
-      "predicted_probability": 0.09463077783584595,
-      "top_predictions": [
-        {
-          "word": "can",
-          "probability": 0.09463077783584595
-        },
-        {
-          "word": "learning",
-          "probability": 0.08606787770986557
-        },
-        {
-          "word": "the",
-          "probability": 0.05945330485701561
-        },
-        {
-          "word": "should",
-          "probability": 0.03580288961529732
-        },
-        {
-          "word": "models",
-          "probability": 0.03287152200937271
-        }
-      ]
-    },
-    {
-      "context": "<OOV> <OOV> help",
-      "actual": "systems",
-      "predicted": "the",
-      "actual_probability": 0.0026479382067918777,
-      "predicted_probability": 0.07359350472688675,
-      "top_predictions": [
-        {
-          "word": "the",
-          "probability": 0.07359350472688675
-        },
-        {
-          "word": "model",
-          "probability": 0.03681163117289543
-        },
-        {
-          "word": "to",
-          "probability": 0.03564636781811714
-        },
-        {
-          "word": "a",
-          "probability": 0.03260146826505661
-        },
-        {
-          "word": "training",
-          "probability": 0.028469404205679893
-        }
-      ]
-    },
-    {
-      "context": "<OOV> <OOV>",
-      "actual": "accuracy",
-      "predicted": "can",
-      "actual_probability": 0.002831825753673911,
-      "predicted_probability": 0.07819123566150665,
-      "top_predictions": [
-        {
-          "word": "can",
-          "probability": 0.07819123566150665
-        },
-        {
-          "word": "the",
-          "probability": 0.05576597899198532
-        },
-        {
-          "word": "learning",
-          "probability": 0.050597526133060455
-        },
-        {
-          "word": "should",
-          "probability": 0.032717250287532806
-        },
-        {
-          "word": "models",
-          "probability": 0.028484869748353958
-        }
-      ]
-    },
-    {
-      "context": "<OOV> <OOV>",
-      "actual": "gradients",
-      "predicted": "can",
-      "actual_probability": 0.0029913082253187895,
-      "predicted_probability": 0.07819123566150665,
-      "top_predictions": [
-        {
-          "word": "can",
-          "probability": 0.07819123566150665
-        },
-        {
-          "word": "the",
-          "probability": 0.05576597899198532
-        },
-        {
-          "word": "learning",
-          "probability": 0.050597526133060455
-        },
-        {
-          "word": "should",
-          "probability": 0.032717250287532806
-        },
-        {
-          "word": "models",
-          "probability": 0.028484869748353958
-        }
-      ]
-    },
-    {
-      "context": "api <OOV> <OOV> request",
+      "context": "<OOV> can <OOV> <OOV> <OOV>",
       "actual": "validation",
-      "predicted": "the",
-      "actual_probability": 0.003021045820787549,
-      "predicted_probability": 0.10809706151485443,
-      "top_predictions": [
-        {
-          "word": "the",
-          "probability": 0.10809706151485443
-        },
-        {
-          "word": "to",
-          "probability": 0.04752261936664581
-        },
-        {
-          "word": "model",
-          "probability": 0.03806162625551224
-        },
-        {
-          "word": "and",
-          "probability": 0.03470804542303085
-        },
-        {
-          "word": "a",
-          "probability": 0.034169770777225494
-        }
-      ]
-    },
-    {
-      "context": "random <OOV> <OOV> predictions from",
-      "actual": "many",
       "predicted": "and",
-      "actual_probability": 0.003190957708284259,
-      "predicted_probability": 0.07883833348751068,
+      "actual_probability": 0.0022505675442516804,
+      "predicted_probability": 0.10758468508720398,
       "top_predictions": [
         {
           "word": "and",
-          "probability": 0.07883833348751068
+          "probability": 0.10758468508720398
         },
         {
           "word": "the",
-          "probability": 0.06628274917602539
+          "probability": 0.09464028477668762
+        },
+        {
+          "word": "training",
+          "probability": 0.061263710260391235
         },
         {
           "word": "to",
-          "probability": 0.0614471398293972
+          "probability": 0.0569329708814621
         },
         {
           "word": "data",
-          "probability": 0.05067385360598564
+          "probability": 0.05305258184671402
+        }
+      ]
+    },
+    {
+      "context": "<OOV> <OOV> <OOV> <OOV> into patterns",
+      "actual": "that",
+      "predicted": "and",
+      "actual_probability": 0.0026667185593396425,
+      "predicted_probability": 0.0992610901594162,
+      "top_predictions": [
+        {
+          "word": "and",
+          "probability": 0.0992610901594162
         },
         {
           "word": "a",
-          "probability": 0.0473908931016922
+          "probability": 0.059121113270521164
+        },
+        {
+          "word": "data",
+          "probability": 0.057710714638233185
+        },
+        {
+          "word": "training",
+          "probability": 0.05430714413523674
+        },
+        {
+          "word": "of",
+          "probability": 0.04774606227874756
+        }
+      ]
+    },
+    {
+      "context": "<OOV> language models <OOV> use tokens",
+      "actual": "that",
+      "predicted": "and",
+      "actual_probability": 0.0028724197763949633,
+      "predicted_probability": 0.08821339160203934,
+      "top_predictions": [
+        {
+          "word": "and",
+          "probability": 0.08821339160203934
+        },
+        {
+          "word": "training",
+          "probability": 0.0597381591796875
+        },
+        {
+          "word": "data",
+          "probability": 0.05953022092580795
+        },
+        {
+          "word": "of",
+          "probability": 0.050235409289598465
+        },
+        {
+          "word": "a",
+          "probability": 0.047282490879297256
+        }
+      ]
+    },
+    {
+      "context": "<OOV> tokenization can represent <OOV> <OOV>",
+      "actual": "with",
+      "predicted": "and",
+      "actual_probability": 0.0029240392614156008,
+      "predicted_probability": 0.10055498778820038,
+      "top_predictions": [
+        {
+          "word": "and",
+          "probability": 0.10055498778820038
+        },
+        {
+          "word": "training",
+          "probability": 0.0828137993812561
+        },
+        {
+          "word": "data",
+          "probability": 0.06591220200061798
+        },
+        {
+          "word": "a",
+          "probability": 0.04547783359885216
+        },
+        {
+          "word": "of",
+          "probability": 0.04178181290626526
+        }
+      ]
+    },
+    {
+      "context": "<OOV> <OOV> can <OOV> <OOV>",
+      "actual": "vocabulary",
+      "predicted": "and",
+      "actual_probability": 0.0031740511767566204,
+      "predicted_probability": 0.10274408012628555,
+      "top_predictions": [
+        {
+          "word": "and",
+          "probability": 0.10274408012628555
+        },
+        {
+          "word": "training",
+          "probability": 0.06470557302236557
+        },
+        {
+          "word": "data",
+          "probability": 0.057235267013311386
+        },
+        {
+          "word": "a",
+          "probability": 0.053077783435583115
+        },
+        {
+          "word": "the",
+          "probability": 0.05009208992123604
+        }
+      ]
+    },
+    {
+      "context": "tokens <OOV> words <OOV> from the model",
+      "actual": "vocabulary",
+      "predicted": "and",
+      "actual_probability": 0.003241840749979019,
+      "predicted_probability": 0.05702397599816322,
+      "top_predictions": [
+        {
+          "word": "and",
+          "probability": 0.05702397599816322
+        },
+        {
+          "word": "data",
+          "probability": 0.050287291407585144
+        },
+        {
+          "word": "training",
+          "probability": 0.04416410252451897
+        },
+        {
+          "word": "model",
+          "probability": 0.03939281776547432
+        },
+        {
+          "word": "of",
+          "probability": 0.03856946900486946
+        }
+      ]
+    },
+    {
+      "context": "<OOV>",
+      "actual": "validation",
+      "predicted": "learning",
+      "actual_probability": 0.00329045532271266,
+      "predicted_probability": 0.06725885719060898,
+      "top_predictions": [
+        {
+          "word": "learning",
+          "probability": 0.06725885719060898
+        },
+        {
+          "word": "can",
+          "probability": 0.055742014199495316
+        },
+        {
+          "word": "models",
+          "probability": 0.027628926560282707
+        },
+        {
+          "word": "should",
+          "probability": 0.02730994112789631
+        },
+        {
+          "word": "how",
+          "probability": 0.02342275343835354
         }
       ]
     },
@@ -557,28 +441,144 @@
       "context": "<OOV> <OOV> <OOV> <OOV> <OOV> code",
       "actual": "changes",
       "predicted": "and",
-      "actual_probability": 0.0033769195433706045,
-      "predicted_probability": 0.11386191844940186,
+      "actual_probability": 0.0033428347669541836,
+      "predicted_probability": 0.11082671582698822,
       "top_predictions": [
         {
           "word": "and",
-          "probability": 0.11386191844940186
-        },
-        {
-          "word": "to",
-          "probability": 0.07230448722839355
-        },
-        {
-          "word": "a",
-          "probability": 0.04568859562277794
-        },
-        {
-          "word": "the",
-          "probability": 0.045335736125707626
+          "probability": 0.11082671582698822
         },
         {
           "word": "training",
-          "probability": 0.044037848711013794
+          "probability": 0.06434404850006104
+        },
+        {
+          "word": "data",
+          "probability": 0.06277631223201752
+        },
+        {
+          "word": "a",
+          "probability": 0.055097296833992004
+        },
+        {
+          "word": "to",
+          "probability": 0.051441725343465805
+        }
+      ]
+    },
+    {
+      "context": "<OOV> <OOV> <OOV>",
+      "actual": "reveal",
+      "predicted": "the",
+      "actual_probability": 0.003351623425260186,
+      "predicted_probability": 0.17495952546596527,
+      "top_predictions": [
+        {
+          "word": "the",
+          "probability": 0.17495952546596527
+        },
+        {
+          "word": "to",
+          "probability": 0.046359989792108536
+        },
+        {
+          "word": "can",
+          "probability": 0.03673185035586357
+        },
+        {
+          "word": "and",
+          "probability": 0.03610348328948021
+        },
+        {
+          "word": "training",
+          "probability": 0.030898654833436012
+        }
+      ]
+    },
+    {
+      "context": "<OOV> <OOV> <OOV> <OOV> <OOV> the <OOV>",
+      "actual": "prediction",
+      "predicted": "and",
+      "actual_probability": 0.003364727832376957,
+      "predicted_probability": 0.08445543795824051,
+      "top_predictions": [
+        {
+          "word": "and",
+          "probability": 0.08445543795824051
+        },
+        {
+          "word": "data",
+          "probability": 0.06440717726945877
+        },
+        {
+          "word": "training",
+          "probability": 0.063603475689888
+        },
+        {
+          "word": "of",
+          "probability": 0.05748913437128067
+        },
+        {
+          "word": "a",
+          "probability": 0.046616777777671814
+        }
+      ]
+    },
+    {
+      "context": "<OOV> test data should <OOV>",
+      "actual": "used",
+      "predicted": "and",
+      "actual_probability": 0.003709354205057025,
+      "predicted_probability": 0.09006431698799133,
+      "top_predictions": [
+        {
+          "word": "and",
+          "probability": 0.09006431698799133
+        },
+        {
+          "word": "data",
+          "probability": 0.05790921300649643
+        },
+        {
+          "word": "training",
+          "probability": 0.0535668209195137
+        },
+        {
+          "word": "a",
+          "probability": 0.04913882166147232
+        },
+        {
+          "word": "of",
+          "probability": 0.04677395895123482
+        }
+      ]
+    },
+    {
+      "context": "<OOV> <OOV> <OOV> is common for",
+      "actual": "regression",
+      "predicted": "and",
+      "actual_probability": 0.0037398850545287132,
+      "predicted_probability": 0.039669714868068695,
+      "top_predictions": [
+        {
+          "word": "and",
+          "probability": 0.039669714868068695
+        },
+        {
+          "word": "a",
+          "probability": 0.037126943469047546
+        },
+        {
+          "word": "model",
+          "probability": 0.03551138937473297
+        },
+        {
+          "word": "from",
+          "probability": 0.030510924756526947
+        },
+        {
+          "word": "data",
+          "probability": 0.028413480147719383
         }
       ]
     }

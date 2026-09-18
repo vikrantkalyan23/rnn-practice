@@ -16,24 +16,26 @@
     "batch_size": 16,
     "embedding_dim": 48,
     "lstm_units": 48,
-    "sequence_length": 5,
+    "sequence_length": 7,
     "dropout": 0.3,
     "l2_strength": 0.0005,
     "max_vocab_size": 160
   },
   "experiments": [
     {"name": "baseline"},
+    {"name": "lr_0005", "learning_rate": 0.0005},
     {"name": "lr_0010", "learning_rate": 0.001},
     {"name": "lr_0020", "learning_rate": 0.002},
-    {"name": "capacity_32", "embedding_dim": 32, "lstm_units": 32},
-    {"name": "capacity_64", "embedding_dim": 64, "lstm_units": 64},
-    {"name": "sequence_3", "sequence_length": 3},
-    {"name": "sequence_4", "sequence_length": 4},
-    {"name": "sequence_6", "sequence_length": 6},
-    {"name": "sequence_7", "sequence_length": 7},
-    {"name": "batch_8", "batch_size": 8},
-    {"name": "batch_32", "batch_size": 32},
+    {"name": "lstm_64", "lstm_units": 64},
+    {"name": "lstm_80", "lstm_units": 80},
+    {"name": "embedding_32", "embedding_dim": 32},
+    {"name": "embedding_64", "embedding_dim": 64},
+    {"name": "embedding_96", "embedding_dim": 96},
+    {"name": "sequence_10", "sequence_length": 10},
+    {"name": "sequence_12", "sequence_length": 12},
     {"name": "dropout_020", "dropout": 0.2},
-    {"name": "dropout_040", "dropout": 0.4}
+    {"name": "dropout_025", "dropout": 0.25},
+    {"name": "vocab_120", "max_vocab_size": 120},
+    {"name": "vocab_230", "max_vocab_size": 230}
   ]
 }

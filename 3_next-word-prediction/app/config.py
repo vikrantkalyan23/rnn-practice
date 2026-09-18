@@ -23,7 +23,7 @@ MULTI_SPLIT_METRICS_PATH = OUTPUT_DIR / "multi_split_metrics.json"
 
 # Model and training defaults sized for the expanded educational corpus.
 SEQUENCE_LENGTH = 7
-MAX_VOCAB_SIZE = 160
+MAX_VOCAB_SIZE = 120
 EMBEDDING_DIM = 48
 LSTM_UNITS = 48
 DROPOUT = 0.30

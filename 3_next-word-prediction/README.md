@@ -70,7 +70,7 @@ The model contains:
 4. `Dense + softmax`: returns one probability for every vocabulary word.
 
 The model remains compact enough for local training while providing enough
-capacity for the expanded corpus. It predicts the 160 most frequent training words. Rare words
+capacity for the expanded corpus. It predicts the 120 most frequent training words. Rare words
 can still appear as `<OOV>` context, but they are excluded as prediction targets.
 This retains recurring vocabulary without letting hundreds of one-example
 classes dominate training.
@@ -306,21 +306,21 @@ stopped.
 The fixed multi-split validation result is:
 
 ```text
-Top-1      : 9.32% +/- 1.16%
-Top-3      : 19.67% +/- 1.40%
-Top-5      : 27.12% +/- 2.41%
-Perplexity : 85.98 +/- 6.27
+Top-1      : 13.16% +/- 4.25%
+Top-3      : 25.70% +/- 4.50%
+Top-5      : 33.12% +/- 4.95%
+Perplexity : 65.63 +/- 5.99
 ```
 
 After model selection, the neural-only final evaluation used the permanent 47
 line test partition:
 
 ```text
-Loss       : 4.6025
-Perplexity : 99.73
-Top-1      : 6.59%
-Top-3      : 17.96%
-Top-5      : 24.55%
+Loss       : 4.3744
+Perplexity : 79.39
+Top-1      : 8.11%
+Top-3      : 17.57%
+Top-5      : 25.68%
 ```
 
 These metrics evaluate the LSTM alone on unseen lines. The deployed hybrid
@@ -374,29 +374,29 @@ outputs/hyperparameter_tuning.csv
 outputs/hyperparameter_tuning.png
 ```
 
-The systematic winner uses sequence length `7`, learning rate `0.0015`, batch
-size `16`, embedding/LSTM size `48`, and dropout `0.30`. Across three splits it
-achieved mean validation loss `4.4515`, Top-1 `9.32%`, Top-3 `19.67%`, and Top-5
-`27.12%`.
+The systematic winner uses vocabulary size `120`, sequence length `7`, learning
+rate `0.0015`, batch size `16`, embedding/LSTM size `48`, and dropout `0.30`.
+Across three splits it achieved mean validation loss `4.1801`, Top-1 `13.16%`,
+Top-3 `25.70%`, and Top-5 `33.12%`.
 
 ## Current Evaluation
 
 The tuned model currently reports:
 
 ```text
-Best epoch                  : 147
-Training accuracy           : 46.09%
-Validation accuracy         : 33.93%
-Accuracy gap                : 12.17 percentage points
-Training loss               : 2.4472
-Validation loss             : 3.1791
-Loss gap                    : 0.7319
-Validation perplexity       : 24.03
-Top-3 accuracy              : 50.00%
-Top-5 accuracy              : 55.36%
-Most-frequent-word baseline : 12.50%
-Random baseline             : 1.25%
-Validation target coverage  : 59.57%
+Best epoch                  : 12
+Training accuracy           : 13.61%
+Validation accuracy         : 7.48%
+Accuracy gap                : 6.14 percentage points
+Training loss               : 3.9625
+Validation loss             : 4.3054
+Loss gap                    : 0.3428
+Validation perplexity       : 74.10
+Top-3 accuracy              : 20.09%
+Top-5 accuracy              : 27.10%
+Most-frequent-word baseline : 2.80%
+Random baseline             : 0.83%
+Validation target coverage  : 47.56%
 ```
 
 The vocabulary limit is an intentional tradeoff. It substantially reduces
@@ -404,10 +404,9 @@ overfitting and improves accuracy, but the model cannot predict rare words.
 `validation_target_coverage` keeps that limitation visible. Increase vocabulary
 only after adding enough examples for the additional words.
 
-These production metrics use seed `11`. Across tuning seeds `7`, `11`, and `19`,
-the selected configuration has a smaller mean accuracy gap of `5.55` percentage
-points. The difference between one split and the cross-split average demonstrates
-why results from this small corpus should not be judged from one split alone.
+These production metrics use seed `11`. The multi-split mean is the model
+selection result; the difference between one split and that aggregate shows why
+this small corpus should not be judged from one partition alone.
 
 ## Current Limitations
 

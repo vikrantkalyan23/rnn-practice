@@ -1,4 +1,10 @@
-from tensorflow.keras.layers import Dense, Dropout, Embedding, Input, LSTM
+from tensorflow.keras.layers import (
+    Dense,
+    Dropout,
+    Embedding,
+    Input,
+    LSTM,
+)
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.regularizers import l2
@@ -7,13 +13,13 @@ from tensorflow.keras.regularizers import l2
 def build_model(
     vocab_size: int,
     sequence_length: int,
-    embedding_dim: int = 48,
-    lstm_units: int = 48,
-    dropout: float = 0.30,
-    learning_rate: float = 0.0015,
-    l2_strength: float = 0.0005,
+    embedding_dim: int = 96,
+    lstm_units: int = 96,
+    dropout: float = 0.20,
+    learning_rate: float = 0.001,
+    l2_strength: float = 0.0001,
 ):
-    """Build an LSTM sized for the educational corpus."""
+
     model = Sequential(
         [
             Input(shape=(sequence_length,)),
@@ -25,6 +31,9 @@ def build_model(
             LSTM(
                 lstm_units,
                 kernel_regularizer=l2(l2_strength),
+                recurrent_regularizer=l2(l2_strength),
+                dropout=0.05,
+                recurrent_dropout=0.05,
             ),
             Dropout(dropout),
             Dense(
@@ -35,9 +44,15 @@ def build_model(
         ]
     )
 
+    optimizer = Adam(
+        learning_rate=learning_rate,
+        clipnorm=1.0,
+    )
+
     model.compile(
-        optimizer=Adam(learning_rate=learning_rate, clipnorm=1.0),
+        optimizer=optimizer,
         loss="sparse_categorical_crossentropy",
         metrics=["accuracy"],
     )
+
     return model

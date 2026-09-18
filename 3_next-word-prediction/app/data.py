@@ -85,13 +85,18 @@ def split_text_train_validation_test(
     return "\n".join(train_lines), "\n".join(validation_lines), "\n".join(test_lines)
 
 
-def create_tokenizer(text: str, max_vocab_size: int | None = None) -> Tokenizer:
-    """Fit a tokenizer on training text only."""
+def create_tokenizer(
+    text: str,
+    max_vocab_size: int | None = None,
+) -> Tokenizer:
+
     tokenizer = Tokenizer(
         num_words=max_vocab_size,
         oov_token="<OOV>",
     )
+
     tokenizer.fit_on_texts([text])
+
     return tokenizer
 
 
@@ -104,34 +109,79 @@ def load_tokenizer(path: Path) -> Tokenizer:
     return tokenizer_from_json(path.read_text(encoding="utf-8"))
 
 
-def create_sequences(text: str, tokenizer: Tokenizer, sequence_length: int = 5):
-    """Create contexts for targets contained in the training vocabulary."""
+def create_sequences(
+    text: str,
+    tokenizer: Tokenizer,
+    sequence_length: int = 8,
+):
+    """
+    Create next-word prediction examples.
+
+    Every valid target that exists in the tokenizer vocabulary
+    is retained. Unknown target words are mapped to OOV rather
+    than silently discarded.
+    """
+
     examples = []
 
+    oov_id = tokenizer.word_index.get("<OOV>")
+
     for line in text.splitlines():
+        line = line.strip()
+
+        if not line:
+            continue
+
         token_ids = tokenizer.texts_to_sequences([line])[0]
 
+        if len(token_ids) < 2:
+            continue
+
         for target_index in range(1, len(token_ids)):
-            # Token 1 is <OOV>. Unknown words are useful context, but they
-            # cannot be meaningful next-word classes in this small model.
-            if token_ids[target_index] == tokenizer.word_index["<OOV>"]:
+            target_id = token_ids[target_index]
+
+            if target_id == 0:
                 continue
 
-            start = max(0, target_index - sequence_length)
-            context_and_target = token_ids[start : target_index + 1]
-            examples.append(context_and_target)
+            start = max(
+                0,
+                target_index - sequence_length,
+            )
+
+            context = token_ids[start:target_index]
+
+            if not context:
+                continue
+
+            context = context[-sequence_length:]
+
+            padded_context = pad_sequences(
+                [context],
+                maxlen=sequence_length,
+                padding="pre",
+                truncating="pre",
+            )[0]
+
+            examples.append(
+                (
+                    padded_context,
+                    target_id,
+                )
+            )
 
     if not examples:
         raise ValueError("No sequences were created from the supplied text.")
 
-    padded = pad_sequences(
-        examples,
-        maxlen=sequence_length + 1,
-        padding="pre",
+    X = np.asarray(
+        [item[0] for item in examples],
+        dtype=np.int32,
     )
 
-    X = np.asarray(padded[:, :-1], dtype=np.int32)
-    y = np.asarray(padded[:, -1], dtype=np.int32)
+    y = np.asarray(
+        [item[1] for item in examples],
+        dtype=np.int32,
+    )
+
     return X, y
 
 

@@ -1,41 +1,1303 @@
-{
-  "protocol": {
-    "validation_seeds": [7, 11, 19],
-    "test_split_seed": 2025,
-    "validation_ratio": 0.2,
-    "test_ratio": 0.15,
-    "max_epochs": 150,
-    "early_stopping_patience": 8,
-    "early_stopping_min_delta": 0.001,
-    "lr_reduction_patience": 4,
-    "lr_reduction_factor": 0.5,
-    "minimum_learning_rate": 0.00001
-  },
-  "baseline": {
-    "learning_rate": 0.0015,
-    "batch_size": 16,
-    "embedding_dim": 48,
-    "lstm_units": 48,
-    "sequence_length": 7,
-    "dropout": 0.3,
-    "l2_strength": 0.0005,
-    "max_vocab_size": 160
-  },
-  "experiments": [
-    {"name": "baseline"},
-    {"name": "lr_0005", "learning_rate": 0.0005},
-    {"name": "lr_0010", "learning_rate": 0.001},
-    {"name": "lr_0020", "learning_rate": 0.002},
-    {"name": "lstm_64", "lstm_units": 64},
-    {"name": "lstm_80", "lstm_units": 80},
-    {"name": "embedding_32", "embedding_dim": 32},
-    {"name": "embedding_64", "embedding_dim": 64},
-    {"name": "embedding_96", "embedding_dim": 96},
-    {"name": "sequence_10", "sequence_length": 10},
-    {"name": "sequence_12", "sequence_length": 12},
-    {"name": "dropout_020", "dropout": 0.2},
-    {"name": "dropout_025", "dropout": 0.25},
-    {"name": "vocab_120", "max_vocab_size": 120},
-    {"name": "vocab_230", "max_vocab_size": 230}
-  ]
-}
+import json
+import os
+import sys
+from pathlib import Path
+
+
+# ============================================================
+# PROJECT SETUP
+# ============================================================
+
+PROJECT_DIR = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(PROJECT_DIR))
+
+os.environ.setdefault(
+    "MPLCONFIGDIR",
+    str(PROJECT_DIR / ".cache" / "matplotlib"),
+)
+
+
+# ============================================================
+# THIRD-PARTY IMPORTS
+# ============================================================
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+from tensorflow.keras.models import load_model
+
+
+# ============================================================
+# APPLICATION IMPORTS
+# ============================================================
+
+from app.config import (
+    DATA_PATH,
+    HISTORY_PATH,
+    MODEL_CONFIG_PATH,
+    MODEL_PATH,
+    OUTPUT_DIR,
+    TEST_RATIO,
+    TEST_SPLIT_SEED,
+    TOKENIZER_PATH,
+    VALIDATION_RATIO,
+)
+
+from app.data import (
+    clean_text,
+    count_possible_targets,
+    create_sequences,
+    load_tokenizer,
+    split_text_by_line,
+    split_text_train_validation_test,
+)
+
+
+# ============================================================
+# CONSTANTS
+# ============================================================
+
+EVALUATION_TOP_K = (1, 3, 5)
+
+EPSILON = 1e-12
+
+
+# ============================================================
+# UTILITY FUNCTIONS
+# ============================================================
+
+def calculate_perplexity(loss: float) -> float:
+    """
+    Calculate perplexity from cross-entropy loss.
+
+    Perplexity = exp(loss)
+    """
+
+    return float(np.exp(np.clip(loss, 0.0, 50.0)))
+
+
+def calculate_top_k_accuracy(
+    probabilities: np.ndarray,
+    targets: np.ndarray,
+    k: int,
+    ignore_oov: bool = True,
+    oov_id: int | None = None,
+):
+    """
+    Calculate Top-K accuracy.
+
+    If ignore_oov=True, examples whose target is <OOV>
+    are excluded from the metric.
+
+    This is important because predicting <OOV> should not
+    be treated as successfully predicting the real word.
+    """
+
+    if probabilities.ndim != 2:
+        raise ValueError(
+            "probabilities must have shape (samples, vocabulary_size)"
+        )
+
+    if targets.ndim != 1:
+        raise ValueError(
+            "targets must have shape (samples,)"
+        )
+
+    if len(probabilities) != len(targets):
+        raise ValueError(
+            "Number of probability rows must equal number of targets."
+        )
+
+    if len(targets) == 0:
+        return 0.0
+
+    valid_mask = np.ones(len(targets), dtype=bool)
+
+    if ignore_oov and oov_id is not None:
+        valid_mask &= targets != oov_id
+
+    valid_probabilities = probabilities[valid_mask]
+    valid_targets = targets[valid_mask]
+
+    if len(valid_targets) == 0:
+        return 0.0
+
+    k = min(k, probabilities.shape[1])
+
+    top_ids = np.argpartition(
+        valid_probabilities,
+        -k,
+        axis=1,
+    )[:, -k:]
+
+    correct = np.any(
+        top_ids == valid_targets[:, None],
+        axis=1,
+    )
+
+    return float(np.mean(correct))
+
+
+def calculate_oov_statistics(
+    targets: np.ndarray,
+    oov_id: int | None,
+):
+    """
+    Calculate OOV target statistics.
+    """
+
+    if len(targets) == 0:
+        return {
+            "oov_target_count": 0,
+            "oov_target_ratio": 0.0,
+            "known_target_count": 0,
+            "known_target_ratio": 0.0,
+        }
+
+    if oov_id is None:
+        return {
+            "oov_target_count": 0,
+            "oov_target_ratio": 0.0,
+            "known_target_count": int(len(targets)),
+            "known_target_ratio": 1.0,
+        }
+
+    oov_mask = targets == oov_id
+
+    oov_count = int(np.sum(oov_mask))
+    known_count = int(len(targets) - oov_count)
+
+    return {
+        "oov_target_count": oov_count,
+        "oov_target_ratio": float(oov_count / len(targets)),
+        "known_target_count": known_count,
+        "known_target_ratio": float(known_count / len(targets)),
+    }
+
+
+def calculate_accuracy_gap(
+    train_accuracy: float,
+    validation_accuracy: float,
+):
+    """
+    Positive value means training accuracy is higher than
+    validation accuracy.
+    """
+
+    return float(train_accuracy - validation_accuracy)
+
+
+def calculate_loss_gap(
+    train_loss: float,
+    validation_loss: float,
+):
+    """
+    Positive value means validation loss is higher than
+    training loss.
+    """
+
+    return float(validation_loss - train_loss)
+
+
+def calculate_overfitting_signal(
+    train_loss: float,
+    validation_loss: float,
+    train_accuracy: float,
+    validation_accuracy: float,
+):
+    """
+    Give a descriptive training-status signal.
+
+    This is NOT a model quality score.
+    """
+
+    loss_gap = validation_loss - train_loss
+    accuracy_gap = train_accuracy - validation_accuracy
+
+    if (
+        loss_gap > 0.50
+        and accuracy_gap > 0.15
+    ):
+        return "strong_overfitting_signal"
+
+    if (
+        loss_gap > 0.25
+        and accuracy_gap > 0.10
+    ):
+        return "possible_overfitting"
+
+    if (
+        train_accuracy < 0.30
+        and validation_accuracy < 0.25
+        and loss_gap < 0.50
+    ):
+        return "under_learning"
+
+    return "no_strong_signal"
+
+
+def build_index_to_word(tokenizer):
+    """
+    Create token ID -> word mapping.
+    """
+
+    return {
+        int(index): word
+        for word, index in tokenizer.word_index.items()
+    }
+
+
+# ============================================================
+# PLOTTING
+# ============================================================
+
+def plot_training_history(
+    history: dict,
+    best_epoch: int,
+):
+    """
+    Save training vs validation loss and accuracy plots.
+    """
+
+    required_keys = [
+        "loss",
+        "val_loss",
+        "accuracy",
+        "val_accuracy",
+    ]
+
+    for key in required_keys:
+        if key not in history:
+            print(
+                f"Warning: training history does not contain '{key}'."
+            )
+            return
+
+    epochs = np.arange(
+        1,
+        len(history["loss"]) + 1,
+    )
+
+    best_index = best_epoch - 1
+
+    if (
+        best_index < 0
+        or best_index >= len(history["val_loss"])
+    ):
+        best_index = int(
+            np.argmin(history["val_loss"])
+        )
+        best_epoch = best_index + 1
+
+    figure, axes = plt.subplots(
+        1,
+        2,
+        figsize=(14, 5),
+    )
+
+    # --------------------------------------------------------
+    # LOSS
+    # --------------------------------------------------------
+
+    axes[0].plot(
+        epochs,
+        history["loss"],
+        label="Training loss",
+    )
+
+    axes[0].plot(
+        epochs,
+        history["val_loss"],
+        label="Validation loss",
+    )
+
+    axes[0].scatter(
+        best_epoch,
+        history["val_loss"][best_index],
+        label=f"Best epoch: {best_epoch}",
+        zorder=3,
+    )
+
+    axes[0].set_title(
+        "Training vs Validation Loss"
+    )
+
+    axes[0].set_xlabel("Epoch")
+    axes[0].set_ylabel("Cross-entropy loss")
+
+    axes[0].legend()
+    axes[0].grid(alpha=0.25)
+
+    # --------------------------------------------------------
+    # ACCURACY
+    # --------------------------------------------------------
+
+    axes[1].plot(
+        epochs,
+        history["accuracy"],
+        label="Training accuracy",
+    )
+
+    axes[1].plot(
+        epochs,
+        history["val_accuracy"],
+        label="Validation accuracy",
+    )
+
+    axes[1].set_title(
+        "Training vs Validation Accuracy"
+    )
+
+    axes[1].set_xlabel("Epoch")
+    axes[1].set_ylabel("Accuracy")
+
+    axes[1].set_ylim(0, 1)
+
+    axes[1].legend()
+    axes[1].grid(alpha=0.25)
+
+    figure.tight_layout()
+
+    figure.savefig(
+        OUTPUT_DIR / "training_history.png",
+        dpi=160,
+    )
+
+    plt.close(figure)
+
+
+def plot_top_k_accuracy(scores):
+    """
+    Save Top-K accuracy plot.
+    """
+
+    labels = [
+        f"Top-{k}"
+        for k in scores
+    ]
+
+    values = list(scores.values())
+
+    figure, axis = plt.subplots(
+        figsize=(7, 5)
+    )
+
+    bars = axis.bar(
+        labels,
+        values,
+    )
+
+    axis.set_title(
+        "Validation Top-K Accuracy"
+    )
+
+    axis.set_ylabel("Accuracy")
+
+    axis.set_ylim(
+        0,
+        max(1.0, max(values) * 1.25),
+    )
+
+    axis.grid(
+        axis="y",
+        alpha=0.25,
+    )
+
+    for bar, value in zip(
+        bars,
+        values,
+    ):
+        axis.text(
+            bar.get_x()
+            + bar.get_width() / 2,
+            value + 0.02,
+            f"{value:.1%}",
+            ha="center",
+        )
+
+    figure.tight_layout()
+
+    figure.savefig(
+        OUTPUT_DIR / "top_k_accuracy.png",
+        dpi=160,
+    )
+
+    plt.close(figure)
+
+
+def plot_baseline_comparison(
+    model_accuracy,
+    baseline_accuracy,
+    random_accuracy,
+):
+    """
+    Compare model Top-1 with simple baselines.
+    """
+
+    labels = [
+        "Random guess",
+        "Most frequent word",
+        "LSTM model",
+    ]
+
+    values = [
+        random_accuracy,
+        baseline_accuracy,
+        model_accuracy,
+    ]
+
+    figure, axis = plt.subplots(
+        figsize=(8, 5)
+    )
+
+    bars = axis.bar(
+        labels,
+        values,
+    )
+
+    axis.set_title(
+        "Validation Accuracy vs Simple Baselines"
+    )
+
+    axis.set_ylabel(
+        "Top-1 accuracy"
+    )
+
+    axis.set_ylim(
+        0,
+        max(
+            0.2,
+            max(values) * 1.30,
+        ),
+    )
+
+    axis.grid(
+        axis="y",
+        alpha=0.25,
+    )
+
+    for bar, value in zip(
+        bars,
+        values,
+    ):
+        axis.text(
+            bar.get_x()
+            + bar.get_width() / 2,
+            value + 0.005,
+            f"{value:.1%}",
+            ha="center",
+        )
+
+    figure.tight_layout()
+
+    figure.savefig(
+        OUTPUT_DIR / "baseline_comparison.png",
+        dpi=160,
+    )
+
+    plt.close(figure)
+
+
+def plot_target_confidence(
+    probabilities,
+    targets,
+    predicted_ids,
+    oov_id=None,
+):
+    """
+    Plot probability assigned to the actual target word.
+
+    Green bars = Top-1 correct.
+    Red bars   = Top-1 incorrect.
+    """
+
+    if len(targets) == 0:
+        return
+
+    example_numbers = np.arange(
+        1,
+        len(targets) + 1,
+    )
+
+    row_indices = np.arange(
+        len(targets)
+    )
+
+    true_word_probability = probabilities[
+        row_indices,
+        targets,
+    ]
+
+    correct = predicted_ids == targets
+
+    # OOV targets should not be treated as normal words.
+    if oov_id is not None:
+        correct = correct & (
+            targets != oov_id
+        )
+
+    figure, axis = plt.subplots(
+        figsize=(14, 6)
+    )
+
+    # Keep colors controlled by matplotlib defaults.
+    correct_values = np.where(
+        correct,
+        true_word_probability,
+        0,
+    )
+
+    incorrect_values = np.where(
+        ~correct,
+        true_word_probability,
+        0,
+    )
+
+    axis.bar(
+        example_numbers,
+        correct_values,
+    )
+
+    axis.bar(
+        example_numbers,
+        incorrect_values,
+    )
+
+    axis.set_title(
+        "Model Confidence in the Correct Validation Word"
+    )
+
+    axis.set_xlabel(
+        "Validation example"
+    )
+
+    axis.set_ylabel(
+        "Probability assigned to target"
+    )
+
+    maximum = float(
+        np.max(true_word_probability)
+    )
+
+    axis.set_ylim(
+        0,
+        max(
+            0.02,
+            maximum * 1.25,
+        ),
+    )
+
+    axis.grid(
+        axis="y",
+        alpha=0.25,
+    )
+
+    axis.text(
+        0.99,
+        0.95,
+        "Correct Top-1 / Incorrect Top-1",
+        ha="right",
+        va="top",
+        transform=axis.transAxes,
+    )
+
+    figure.tight_layout()
+
+    figure.savefig(
+        OUTPUT_DIR / "validation_confidence.png",
+        dpi=160,
+    )
+
+    plt.close(figure)
+
+
+# ============================================================
+# MAIN EVALUATION
+# ============================================================
+
+def main():
+    OUTPUT_DIR.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    print(
+        "Loading model and evaluation artifacts..."
+    )
+
+    # --------------------------------------------------------
+    # LOAD ARTIFACTS
+    # --------------------------------------------------------
+
+    if not MODEL_PATH.exists():
+        raise FileNotFoundError(
+            f"Model not found: {MODEL_PATH}"
+        )
+
+    if not TOKENIZER_PATH.exists():
+        raise FileNotFoundError(
+            f"Tokenizer not found: {TOKENIZER_PATH}"
+        )
+
+    if not MODEL_CONFIG_PATH.exists():
+        raise FileNotFoundError(
+            f"Model config not found: {MODEL_CONFIG_PATH}"
+        )
+
+    if not HISTORY_PATH.exists():
+        raise FileNotFoundError(
+            f"Training history not found: {HISTORY_PATH}"
+        )
+
+    model = load_model(
+        MODEL_PATH
+    )
+
+    tokenizer = load_tokenizer(
+        TOKENIZER_PATH
+    )
+
+    model_config = json.loads(
+        MODEL_CONFIG_PATH.read_text(
+            encoding="utf-8"
+        )
+    )
+
+    saved_history = json.loads(
+        HISTORY_PATH.read_text(
+            encoding="utf-8"
+        )
+    )
+
+    # --------------------------------------------------------
+    # LOAD CORPUS
+    # --------------------------------------------------------
+
+    text = DATA_PATH.read_text(
+        encoding="utf-8"
+    )
+
+    # --------------------------------------------------------
+    # RECREATE THE SAME SPLIT USED DURING TRAINING
+    # --------------------------------------------------------
+
+    if saved_history.get(
+        "held_out_test",
+        False,
+    ):
+        train_text, validation_text, _ = (
+            split_text_train_validation_test(
+                text,
+                validation_ratio=saved_history.get(
+                    "validation_ratio",
+                    VALIDATION_RATIO,
+                ),
+                test_ratio=saved_history.get(
+                    "test_ratio",
+                    TEST_RATIO,
+                ),
+                test_seed=saved_history.get(
+                    "test_split_seed",
+                    TEST_SPLIT_SEED,
+                ),
+                validation_seed=saved_history.get(
+                    "validation_seed",
+                    saved_history.get(
+                        "random_seed"
+                    ),
+                ),
+            )
+        )
+
+    else:
+        train_text, validation_text = (
+            split_text_by_line(
+                text,
+                VALIDATION_RATIO,
+                saved_history["random_seed"],
+            )
+        )
+
+    # --------------------------------------------------------
+    # CREATE EVALUATION SEQUENCES
+    # --------------------------------------------------------
+
+    sequence_length = int(
+        model_config["sequence_length"]
+    )
+
+    X_train, y_train = create_sequences(
+        train_text,
+        tokenizer,
+        sequence_length=sequence_length,
+    )
+
+    X_validation, y_validation = (
+        create_sequences(
+            validation_text,
+            tokenizer,
+            sequence_length=sequence_length,
+        )
+    )
+
+    # --------------------------------------------------------
+    # MODEL OUTPUT SIZE
+    # --------------------------------------------------------
+
+    probabilities = model.predict(
+        X_validation,
+        verbose=0,
+    )
+
+    if probabilities.ndim != 2:
+        raise ValueError(
+            "Model predictions must have shape "
+            "(samples, vocabulary_size)."
+        )
+
+    output_vocab_size = probabilities.shape[1]
+
+    # --------------------------------------------------------
+    # OOV ID
+    # --------------------------------------------------------
+
+    oov_id = tokenizer.word_index.get(
+        "<OOV>"
+    )
+
+    # --------------------------------------------------------
+    # EVALUATE TRAINING DATA
+    # --------------------------------------------------------
+
+    train_loss, train_accuracy = (
+        model.evaluate(
+            X_train,
+            y_train,
+            verbose=0,
+        )
+    )
+
+    # --------------------------------------------------------
+    # EVALUATE VALIDATION DATA
+    # --------------------------------------------------------
+
+    validation_loss, validation_accuracy = (
+        model.evaluate(
+            X_validation,
+            y_validation,
+            verbose=0,
+        )
+    )
+
+    train_loss = float(train_loss)
+    train_accuracy = float(train_accuracy)
+
+    validation_loss = float(
+        validation_loss
+    )
+
+    validation_accuracy = float(
+        validation_accuracy
+    )
+
+    # --------------------------------------------------------
+    # PREDICTIONS
+    # --------------------------------------------------------
+
+    predicted_ids = np.argmax(
+        probabilities,
+        axis=1,
+    )
+
+    # --------------------------------------------------------
+    # OOV STATISTICS
+    # --------------------------------------------------------
+
+    oov_stats = calculate_oov_statistics(
+        y_validation,
+        oov_id,
+    )
+
+    # --------------------------------------------------------
+    # TOP-K
+    # --------------------------------------------------------
+
+    top_k_scores = {}
+
+    for k in EVALUATION_TOP_K:
+        top_k_scores[
+            f"top_{k}_accuracy"
+        ] = calculate_top_k_accuracy(
+            probabilities,
+            y_validation,
+            k,
+            ignore_oov=True,
+            oov_id=oov_id,
+        )
+
+    # --------------------------------------------------------
+    # COVERAGE
+    # --------------------------------------------------------
+
+    possible_targets = (
+        count_possible_targets(
+            validation_text
+        )
+    )
+
+    if possible_targets > 0:
+        validation_coverage = (
+            len(y_validation)
+            / possible_targets
+        )
+    else:
+        validation_coverage = 0.0
+
+    validation_coverage = float(
+        min(1.0, validation_coverage)
+    )
+
+    # --------------------------------------------------------
+    # BASELINE
+    # --------------------------------------------------------
+
+    target_counts = np.bincount(
+        y_train,
+        minlength=output_vocab_size,
+    )
+
+    if len(target_counts) > 0:
+        most_frequent_target = int(
+            np.argmax(target_counts)
+        )
+    else:
+        most_frequent_target = 0
+
+    # Calculate baseline only on known targets.
+    known_validation_mask = np.ones(
+        len(y_validation),
+        dtype=bool,
+    )
+
+    if oov_id is not None:
+        known_validation_mask &= (
+            y_validation != oov_id
+        )
+
+    known_targets = y_validation[
+        known_validation_mask
+    ]
+
+    if len(known_targets) > 0:
+        baseline_accuracy = float(
+            np.mean(
+                known_targets
+                == most_frequent_target
+            )
+        )
+    else:
+        baseline_accuracy = 0.0
+
+    # Random baseline over model vocabulary.
+    random_accuracy = float(
+        1.0 / output_vocab_size
+    )
+
+    # --------------------------------------------------------
+    # GAPS
+    # --------------------------------------------------------
+
+    loss_gap = calculate_loss_gap(
+        train_loss,
+        validation_loss,
+    )
+
+    accuracy_gap = calculate_accuracy_gap(
+        train_accuracy,
+        validation_accuracy,
+    )
+
+    status = calculate_overfitting_signal(
+        train_loss,
+        validation_loss,
+        train_accuracy,
+        validation_accuracy,
+    )
+
+    # --------------------------------------------------------
+    # PERPLEXITY
+    # --------------------------------------------------------
+
+    validation_perplexity = (
+        calculate_perplexity(
+            validation_loss
+        )
+    )
+
+    train_perplexity = (
+        calculate_perplexity(
+            train_loss
+        )
+    )
+
+    # --------------------------------------------------------
+    # BEST EPOCH
+    # --------------------------------------------------------
+
+    history = saved_history.get(
+        "history",
+        {},
+    )
+
+    best_epoch = int(
+        saved_history.get(
+            "best_epoch",
+            0,
+        )
+    )
+
+    if (
+        best_epoch <= 0
+        and "val_loss" in history
+        and history["val_loss"]
+    ):
+        best_epoch = (
+            int(
+                np.argmin(
+                    history["val_loss"]
+                )
+            )
+            + 1
+        )
+
+    # --------------------------------------------------------
+    # METRICS
+    # --------------------------------------------------------
+
+    metrics = {
+        "evaluation_type": "development_validation",
+
+        "evaluation_protocol": (
+            "fixed-test-multi-validation-v1"
+        ),
+
+        "sequence_length": sequence_length,
+
+        "model_vocab_size": int(
+            output_vocab_size
+        ),
+
+        "max_vocab_size": model_config.get(
+            "max_vocab_size"
+        ),
+
+        "embedding_dim": model_config.get(
+            "embedding_dim"
+        ),
+
+        "lstm_units": model_config.get(
+            "lstm_units"
+        ),
+
+        "dropout": model_config.get(
+            "dropout"
+        ),
+
+        "l2_strength": model_config.get(
+            "l2_strength"
+        ),
+
+        "learning_rate": model_config.get(
+            "learning_rate"
+        ),
+
+        "batch_size": model_config.get(
+            "batch_size"
+        ),
+
+        "best_epoch": best_epoch,
+
+        "train_examples": int(
+            len(y_train)
+        ),
+
+        "validation_examples": int(
+            len(y_validation)
+        ),
+
+        "train_loss": train_loss,
+
+        "validation_loss": validation_loss,
+
+        "train_perplexity": train_perplexity,
+
+        "validation_perplexity": (
+            validation_perplexity
+        ),
+
+        "loss_gap": loss_gap,
+
+        "train_accuracy": train_accuracy,
+
+        "validation_accuracy": (
+            validation_accuracy
+        ),
+
+        "accuracy_gap": accuracy_gap,
+
+        "training_status_signal": status,
+
+        "top_1_accuracy": top_k_scores[
+            "top_1_accuracy"
+        ],
+
+        "top_3_accuracy": top_k_scores[
+            "top_3_accuracy"
+        ],
+
+        "top_5_accuracy": top_k_scores[
+            "top_5_accuracy"
+        ],
+
+        "most_frequent_word_baseline": (
+            baseline_accuracy
+        ),
+
+        "random_guess_baseline": (
+            random_accuracy
+        ),
+
+        "validation_target_count_possible": (
+            int(possible_targets)
+        ),
+
+        "validation_target_count_evaluated": (
+            int(len(y_validation))
+        ),
+
+        "validation_target_coverage": (
+            validation_coverage
+        ),
+
+        **oov_stats,
+
+        "known_target_examples": int(
+            len(known_targets)
+        ),
+    }
+
+    # --------------------------------------------------------
+    # SAVE METRICS
+    # --------------------------------------------------------
+
+    metrics_path = (
+        OUTPUT_DIR / "metrics.json"
+    )
+
+    metrics_path.write_text(
+        json.dumps(
+            metrics,
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+
+    # --------------------------------------------------------
+    # PLOTS
+    # --------------------------------------------------------
+
+    plot_training_history(
+        history,
+        best_epoch,
+    )
+
+    plot_top_k_accuracy(
+        {
+            1: top_k_scores[
+                "top_1_accuracy"
+            ],
+            3: top_k_scores[
+                "top_3_accuracy"
+            ],
+            5: top_k_scores[
+                "top_5_accuracy"
+            ],
+        }
+    )
+
+    plot_baseline_comparison(
+        top_k_scores[
+            "top_1_accuracy"
+        ],
+        baseline_accuracy,
+        random_accuracy,
+    )
+
+    plot_target_confidence(
+        probabilities,
+        y_validation,
+        predicted_ids,
+        oov_id=oov_id,
+    )
+
+    # --------------------------------------------------------
+    # PRINT RESULTS
+    # --------------------------------------------------------
+
+    print()
+    print("=" * 60)
+    print("DEVELOPMENT VALIDATION EVALUATION")
+    print("=" * 60)
+
+    print()
+    print("Model")
+    print("-" * 35)
+
+    print(
+        f"Vocabulary       : {output_vocab_size}"
+    )
+
+    print(
+        f"Sequence length  : {sequence_length}"
+    )
+
+    print(
+        f"Embedding        : "
+        f"{model_config.get('embedding_dim')}"
+    )
+
+    print(
+        f"LSTM units       : "
+        f"{model_config.get('lstm_units')}"
+    )
+
+    print(
+        f"Dropout          : "
+        f"{model_config.get('dropout')}"
+    )
+
+    print()
+    print("Loss")
+    print("-" * 35)
+
+    print(
+        f"Train loss       : {train_loss:.4f}"
+    )
+
+    print(
+        f"Validation loss  : "
+        f"{validation_loss:.4f}"
+    )
+
+    print(
+        f"Loss gap         : "
+        f"{loss_gap:.4f}"
+    )
+
+    print(
+        f"Train perplexity : "
+        f"{train_perplexity:.2f}"
+    )
+
+    print(
+        f"Val perplexity   : "
+        f"{validation_perplexity:.2f}"
+    )
+
+    print()
+    print("Accuracy")
+    print("-" * 35)
+
+    print(
+        f"Train accuracy   : "
+        f"{train_accuracy:.2%}"
+    )
+
+    print(
+        f"Validation       : "
+        f"{validation_accuracy:.2%}"
+    )
+
+    print(
+        f"Accuracy gap     : "
+        f"{accuracy_gap:.2%}"
+    )
+
+    print()
+    print("Top-K")
+    print("-" * 35)
+
+    print(
+        f"Top-1            : "
+        f"{top_k_scores['top_1_accuracy']:.2%}"
+    )
+
+    print(
+        f"Top-3            : "
+        f"{top_k_scores['top_3_accuracy']:.2%}"
+    )
+
+    print(
+        f"Top-5            : "
+        f"{top_k_scores['top_5_accuracy']:.2%}"
+    )
+
+    print()
+    print("Vocabulary / Coverage")
+    print("-" * 35)
+
+    print(
+        f"Coverage         : "
+        f"{validation_coverage:.2%}"
+    )
+
+    print(
+        f"OOV targets      : "
+        f"{oov_stats['oov_target_ratio']:.2%}"
+    )
+
+    print(
+        f"Known targets    : "
+        f"{oov_stats['known_target_ratio']:.2%}"
+    )
+
+    print()
+    print("Baselines")
+    print("-" * 35)
+
+    print(
+        f"Random           : "
+        f"{random_accuracy:.2%}"
+    )
+
+    print(
+        f"Most frequent    : "
+        f"{baseline_accuracy:.2%}"
+    )
+
+    print()
+    print("Training signal")
+    print("-" * 35)
+
+    print(
+        f"Status signal    : {status}"
+    )
+
+    print(
+        f"Best epoch       : {best_epoch}"
+    )
+
+    print()
+    print(
+        f"Metrics saved to : {metrics_path}"
+    )
+
+    print(
+        f"Graphs saved to  : {OUTPUT_DIR}"
+    )
+
+    print("=" * 60)
+
+
+if __name__ == "__main__":
+    main()

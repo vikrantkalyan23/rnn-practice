@@ -114,23 +114,24 @@ def main():
     callbacks = [
         EarlyStopping(
             monitor="val_loss",
-            patience=8,
-            min_delta=0.001,
+            patience=12,
+            min_delta=0.0005,
             restore_best_weights=True,
-            verbose=0 if options.quiet else 1,
+            verbose=1,
         ),
         ReduceLROnPlateau(
             monitor="val_loss",
             factor=0.5,
-            patience=4,
-            min_lr=0.00001,
-            verbose=0 if options.quiet else 1,
+            patience=5,
+            min_lr=1e-5,
+            verbose=1,
         ),
         ModelCheckpoint(
             MODEL_PATH,
             monitor="val_loss",
             save_best_only=True,
-            verbose=0 if options.quiet else 1,
+            save_weights_only=False,
+            verbose=1,
         ),
     ]
 
@@ -141,7 +142,7 @@ def main():
         validation_data=(X_validation, y_validation),
         epochs=options.epochs,
         batch_size=options.batch_size,
-        shuffle=False,
+        shuffle=True,
         callbacks=callbacks,
         verbose=0 if options.quiet else 1,
     )

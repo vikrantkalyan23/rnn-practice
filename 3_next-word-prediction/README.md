@@ -97,6 +97,9 @@ uv run python scripts/multi_split_evaluate.py
 
 ## Setup
 
+To run the complete app in Docker, follow [DOCKER.md](DOCKER.md). It includes
+local commands and a separate steps-only guide for deploying to a Hostinger VPS.
+
 Run commands from this directory:
 
 ```bash
